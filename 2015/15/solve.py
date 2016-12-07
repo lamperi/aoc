@@ -4,23 +4,6 @@ with open("input.txt") as file:
 import re
 import itertools
 
-class Reindeer(object):    
-    def __init__(self, name, speed, fly_time, rest_time):
-        self.name = name
-        self.speed = speed
-        self.fly_time = fly_time
-        self.rest_time = rest_time
-        self.cycle_time = fly_time + rest_time
-        self.pos = 0
-    
-    def step(self, t):
-        mod = t % self.cycle_time
-        if mod < self.fly_time:
-            self.pos += self.speed
-
-    def __str__(self):
-        return "{} at {}".format(self.name, self.pos)
-    
 spoon = []
 pattern = r"(\w+): capacity (-?\d+), durability (-?\d+), flavor (-?\d+), texture (-?\d+), calories (-?\d+)"
 for teaspoon, capacity, durability, flavor, texture, calories in re.findall(pattern, data):
