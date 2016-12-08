@@ -4,8 +4,6 @@ import re
 with open("input.txt") as file:
     data = file.read()
 
-pattern = r"((.)(.)\2\3)"
-
 def check(line):
     m = False
     l = len(line)
