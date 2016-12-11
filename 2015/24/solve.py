@@ -74,5 +74,5 @@ def solve2():
                     
     print("PART 2: {}".format(min_PA))
 
-    
+solve1() 
 solve2()
