@@ -22,7 +22,7 @@ def valid_state(floors):
                 return False
     return True
 
-def generate_moves(current, next, types, dir):
+def generate_moves(current, dir):
     for generator_size in range(0,3):
         for micro_size in range(1 if generator_size == 0 else 0,3-generator_size):
                 for dG in itertools.combinations(current["G"], generator_size):
@@ -33,11 +33,11 @@ def moves(ef, floors, types):
     current = floors[ef]
     if ef < 3:
         next = floors[ef + 1]
-        for move in generate_moves(current, next, types, +1):
+        for move in generate_moves(current, +1):
             yield move
     if ef > 0:
         next = floors[ef - 1]
-        for move in generate_moves(current, next, types, -1):
+        for move in generate_moves(current, -1):
             yield move
 
 def print_states(states, types):
@@ -90,9 +90,8 @@ def pack(current_floor, current_floors):
     equivalent = "{}{}".format(current_floor,pos)
     return full, equivalent
 
+# BFS for solving
 def solve_gen(current_floor, current_floors, types, steps = 0):
-    prev = []
-    
     states = set()
     queue = list()
     
@@ -107,10 +106,10 @@ def solve_gen(current_floor, current_floors, types, steps = 0):
 
         # Is this solution?
         if current_floor == 3 and len(types) == len(current_floors[current_floor]["M"]) == len(current_floors[current_floor]["G"]):
-            show(current_floor, current_floors, types)
+            #show(current_floor, current_floors, types)
             sol = list(prev)
             sol.append(state)
-            print("Solved with {} steps, history:".format(steps))
+            #print("Solved with {} steps, history:".format(steps))
             #print_states(sol, types)
             return steps
 
@@ -124,6 +123,9 @@ def solve_gen(current_floor, current_floors, types, steps = 0):
             ef = ef+ed
             floors[ef]["G"] += Gd
             floors[ef]["M"] += Md
+            floors[ef]["G"].sort()
+            floors[ef]["M"].sort()
+
             # Validate the move
             if not valid_state(floors):
                 continue
@@ -135,14 +137,13 @@ def solve_gen(current_floor, current_floors, types, steps = 0):
                 sol.append(thestate)
                 queue.append((thestate,steps+1,sol))
 
-def solve(current_floor, current_floors, types, steps = 0):
-    if current_floor == 0:
-        # If we always move 2 up and 1 down.
-        # Then this is the optimum solution
-        distance = sum((len(current_floors[x]["G"]) + len(current_floors[x]["M"])) * 2 * (3-x) for x in range(3)) - 3*(len(current_floors)-1)
-        print("The solution for this configuration is probably: {}".format(distance))
+def solve(current_floor, current_floors, types):
+    # If we always move 2 up and 1 down.
+    # Then this is the optimum solution
+    distance = sum((len(current_floors[x]["G"]) + len(current_floors[x]["M"])) * 2 * (3-x) for x in range(3)) - 3*(len(current_floors)-1)
+    print("The lower bound for the solution is: {}".format(distance))
  
-    best = solve_gen(current_floor, current_floors, types, steps)
+    best = solve_gen(current_floor, current_floors, types)
     print("Best solution: {}".format(best))
 
 def test_case():
@@ -157,44 +158,72 @@ def test_case():
     show(0, test_floors, test_types)
     solve(0, test_floors, test_types)
 
-def part1():
+def as_symbol(word, symbols):
+    if word in symbols:
+        symbol = symbols[word]
+    else:
+        for c in word:
+            if c.upper() not in symbols.values():
+                symbol = symbols[word] = c.upper()
+                break
+    return symbol
+
+def parse_input(data):
     reg = r"(\w+) generator|a (\w+)-compatible microchip"
     floors = [{"G":[], "M":[]} for x in range(4)]
+    symbols = dict()
+
     for floor,line in enumerate(data.splitlines()):
         for generator,microchip in re.findall(reg, line):
             if generator:
-                floors[floor]["G"].append(generator[0].upper() if generator != 'polonium' else "L")
+                s = as_symbol(generator, symbols)
+                floors[floor]["G"].append(s)
             if microchip:
-                floors[floor]["M"].append(microchip[0].upper() if microchip != 'polonium' else "L")
-                
-    types = sorted([item[0] for stuff in floors for item in stuff["G"]])
-    
-    print("PART 1")
-    show(0, floors, types)
-    solve(0, floors, types)
-    
-def part2():
-    reg = r"(\w+) generator|a (\w+)-compatible microchip"
-    floors = [{"G":[], "M":[]} for x in range(4)]
-    for floor,line in enumerate(data.splitlines()):
-        for generator,microchip in re.findall(reg, line):
-            if generator:
-                floors[floor]["G"].append(generator[0].upper() if generator != 'polonium' else "L")
-            if microchip:
-                floors[floor]["M"].append(microchip[0].upper() if microchip != 'polonium' else "L")
-                
-    # Missing from input
-    floors[0]["G"].extend(["E","D"])
-    floors[0]["M"].extend(["E","D"])
+                s = as_symbol(microchip, symbols)
+                floors[floor]["M"].append(s)
+
+    return symbols, floors
+
+def part2(data):
+    print("PART 2:")
+        
+    symbols, floors = parse_input(data)
+    # Missing from original input
+    e = as_symbol('elerium', symbols)
+    d = as_symbol('dilithium', symbols)
+
+    floors[0]["G"].extend([e,d])
+    floors[0]["M"].extend([e,d])
     
     types = sorted([item[0] for stuff in floors for item in stuff["G"]])
-    
-    print("PART 2")
+
+    print(symbols)
     show(0, floors, types)
     solve(0, floors, types)
 
+def part1(data):
+    print("PART 1:")
+    
+    symbols, floors = parse_input(data)
+    types = sorted([item[0] for stuff in floors for item in stuff["G"]])
+    
+    print(symbols)
+    show(0, floors, types)
+    solve(0, floors, types)
+    
+
 #test_scenarios()
 test_case()
-part1()
-part2()
+part1(data)
+part2(data)
+part1("""The first floor contains a promethium generator and a promethium-compatible microchip.
+The second floor contains a cobalt generator, a curium generator, a ruthenium generator, and a plutonium generator.
+The third floor contains a cobalt-compatible microchip, a curium-compatible microchip, a ruthenium-compatible microchip, and a plutonium-compatible microchip.
+The fourth floor contains nothing relevant.""")
+
+part1("""The first floor contains a thulium generator, a thulium-compatible microchip, a plutonium generator, and a strontium generator.
+The second floor contains a plutonium-compatible microchip and a strontium-compatible microchip.
+The third floor contains a promethium generator, a promethium-compatible microchip, a ruthenium generator, and a ruthenium-compatible microchip.
+The fourth floor contains nothing relevant.""")
+
 
