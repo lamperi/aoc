@@ -3,10 +3,12 @@ import md5
 import time
 import re
 
-start_time = time.time()
+testKey = "abc"
+inputKey = "cuanljph"
 
-def find_64th(extra=0):
-    
+
+def find_64th(key, extra=0):   
+    start_time = time.time()
     index = 0
     buf = []
     found = []
@@ -16,7 +18,7 @@ def find_64th(extra=0):
              buf = buf[1:]
     
          m = md5.new()
-         m.update("cuanljph" + str(index))
+         m.update(key + str(index))
          newMD5 = m.hexdigest()
          for x in range(extra):
               m = md5.new()
@@ -46,7 +48,9 @@ def find_64th(extra=0):
     #print(found)
     solution = found[63][0]
     elapsed_time = time.time() - start_time
-    print("Found {} in {}s".format(solution, elapsed_time))
+    print("Found {} in {}s using salt = {}".format(solution, elapsed_time, key))
 
-find_64th(0)
-find_64th(2016)
+find_64th(testKey, 0)
+find_64th(inputKey, 0)
+find_64th(testKey, 2016)
+find_64th(inputKey, 2016)
