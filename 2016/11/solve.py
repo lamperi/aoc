@@ -109,6 +109,18 @@ def solve_gen(current_floor, current_floors, types, steps = 0):
             #show(current_floor, current_floors, types)
             sol = list(prev)
             sol.append(state)
+            pcf = None
+            pcfs = None
+            for j,s in enumerate(sol):
+                cf, cfs = unpack(s)
+                if pcf is not None and cf < pcf: # Go down
+                    pcounts = tuple(len(x["M"]) + len(x["G"]) for x in pcfs)
+                    counts = tuple(len(x["M"]) + len(x["G"])  for x in cfs)
+                    if any(pcounts[k] + 2 == counts[k] for k in range(4)):
+                        print("Optimal solution made 2 items go down at {}: {} vs {} (prev state = {}, state = {})".format(j, pcounts, counts, pcfs, cfs))
+                pcf = cf
+                pcfs = cfs
+                
             #print("Solved with {} steps, history:".format(steps))
             #print_states(sol, types)
             return steps
