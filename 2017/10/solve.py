@@ -1,4 +1,4 @@
-import sys, operator, functools
+import sys, operator, functools, binascii
 data = open("input.txt").read().strip()
 
 # Shared
@@ -48,7 +48,7 @@ def func(inp_list):
         hash_val = functools.reduce(operator.xor, circular_list[index:index+16])
         hash_vals.append(hash_val)
     
-    value = "".join([hex(v)[2:] if v >= 16 else "0" + hex(v)[2:] for v in hash_vals])
+    value = binascii.hexlify(bytes(hash_vals))
     return  value    
 
 
