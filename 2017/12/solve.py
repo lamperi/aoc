@@ -42,6 +42,7 @@ def func(data):
             break
             
             
+    # Part 1, part 2
     return len(groups[0]), len(groups)
         
         
