@@ -5,7 +5,7 @@ data = open("input.txt").read()
 def match(square, rule):
     return square == rule
 
-def func(data, iter):
+def func(data, iterations):
     start = """.#.
 ..#
 ###"""
@@ -24,50 +24,23 @@ def func(data, iter):
                 rules[b] = parts[1]
 
     image = start.splitlines()
-    for round in range(iter):
+    for round in range(iterations):
         no_lines = len(image)
         new_image = []
-        if no_lines % 2 == 0:
-            for i in range(0, no_lines, 2):
-                new_line1 = []
-                new_line2 = []
-                new_line3 = []
-                line1 = image[i]
-                line2 = image[i+1]
-                for j in range(0, no_lines, 2):
-                    square = line1[j:j+2] + "/" + line2[j:j+2]
-                    res = rules[square]
-                    p = res.split("/")
-                    new_line1.append(p[0])
-                    new_line2.append(p[1])
-                    new_line3.append(p[2])
-                new_image.append("".join(new_line1))
-                new_image.append("".join(new_line2))
-                new_image.append("".join(new_line3))
-            image = new_image
-
-        elif no_lines % 3 == 0:
-            for i in range(0, no_lines, 3):
-                new_line1 = []
-                new_line2 = []
-                new_line3 = []
-                new_line4 = []
-                line1 = image[i]
-                line2 = image[i+1]
-                line3 = image[i+2]
-                for j in range(0, no_lines, 3):
-                    square = line1[j:j+3] + "/" + line2[j:j+3] + "/" + line3[j:j+3]
-                    res = rules[square]
-                    p = res.split("/")
-                    new_line1.append(p[0])
-                    new_line2.append(p[1])
-                    new_line3.append(p[2])
-                    new_line4.append(p[3])
-                new_image.append("".join(new_line1))
-                new_image.append("".join(new_line2))
-                new_image.append("".join(new_line3))
-                new_image.append("".join(new_line4))
-            image = new_image
+        for size in (2, 3):
+            if no_lines % size == 0:
+                for i in range(0, no_lines, size):
+                    new_lines = [[] for k in range(size+1)]
+                    old_lines = [image[k] for k in range(i, i+size)]
+                    for j in range(0, no_lines, size):
+                        square = "/".join(old_line[j:j+size] for old_line in old_lines)
+                        res = rules[square]
+                        for new_line, part in zip(new_lines, res.split("/")):
+                            new_line.append(part)
+                    for new_line in new_lines:
+                        new_image.append("".join(new_line))
+                image = new_image
+                break
 
     return "\n".join(image).count("#")
 
