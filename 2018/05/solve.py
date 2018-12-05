@@ -1,6 +1,7 @@
 data = open("input.txt").read().strip()
 
 import re
+import string
 from collections import Counter
 
 def solve1(data):
@@ -20,13 +21,11 @@ print(solve1(data))
 
 def solve2(data):
     min_len = len(data)
-    min_chr = None
-    for c in 'abcdefghijklmnopqrstubwxyz':
+    for c in string.ascii_lowercase:
         d = data.replace(c, "").replace(c.upper(), "")
         l = solve1(d)
         if l < min_len:
             min_len = l
-            min_chr = c
     return min_len
 
 print(solve2("""dabAcCaCBAcCcaDA"""))
