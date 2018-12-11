@@ -65,17 +65,7 @@ print(solve2_fast(42), "232,251,12")
 print(solve2_fast(7403))
 
 def solve2(grid_serial):
-    grid = [[0]*300 for i in range(300)]
-    for i in range(300):
-        for j in range(300):
-            x = i+1
-            y = j+1
-            rack_id = x + 10
-            power_level = (rack_id * y + grid_serial) * rack_id
-            hundreds = int(power_level / 100) % 10
-            power_level = hundreds - 5
-            grid[j][i] = power_level
-    
+    grid = make_grid(grid_serial)
     max_level = 0
     max_coords = None
     for i in range(0, 300):
