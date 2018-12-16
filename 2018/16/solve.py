@@ -1,59 +1,22 @@
 import re
 data = open('input.txt').read()
 
-def check_opcode(reg, code, after):
+INST = ('addr', 'addi', 'mulr', 'muli', 'banr', 'bani', 'borr', 'bori',
+        'setr', 'seti', 'gtir', 'gtri', 'gtrr', 'eqir', 'eqri', 'eqrr')
+INST_COUNT = len(INST)
+
+def check_opcode(before, code, after):
     valids = []
-    _, a, b, c = code
-    if reg[a] + reg[b] == after[c]:
-        valids.append('addr')
-    if reg[a] + b == after[c]:
-        valids.append('addi')
-    if reg[a] * reg[b] == after[c]:
-        valids.append('mulr')
-    if reg[a] * b == after[c]:
-        valids.append('muli')
-    if reg[a] & reg[b] == after[c]:
-        valids.append('banr')
-    if reg[a] & b == after[c]:
-        valids.append('bani')
-    if reg[a] | reg[b] == after[c]:
-        valids.append('borr')
-    if reg[a] | b == after[c]:
-        valids.append('bori')
-    if reg[a] == after[c]:
-        valids.append('setr')
-    if a == after[c]:
-        valids.append('seti')
-    if after[c] == 1 and a > reg[b]:
-        valids.append('gtir')
-    if after[c] == 0 and a <= reg[b]:
-        valids.append('gtir')
-    if after[c] == 1 and reg[a] > b:
-        valids.append('gtri')
-    if after[c] == 0 and reg[a] <= b:
-        valids.append('gtri')
-    if after[c] == 1 and reg[a] > reg[b]:
-        valids.append('gtrr')
-    if after[c] == 0 and reg[a] <= reg[b]:
-        valids.append('gtrr')
-    if after[c] == 1 and a == reg[b]:
-        valids.append('eqir')
-    if after[c] == 0 and a != reg[b]:
-        valids.append('eqir')
-    if after[c] == 1 and reg[a] == b:
-        valids.append('eqri')
-    if after[c] == 0 and reg[a] != b:
-        valids.append('eqri')
-    if after[c] == 1 and reg[a] == reg[b]:
-        valids.append('eqrr')
-    if after[c] == 0 and reg[a] != reg[b]:
-        valids.append('eqrr')
+    for inst_name in INST:
+        reg = before[:]
+        exec_inst(inst_name, reg, code)
+        if reg == after:
+            valids.append(inst_name)
     return valids
 
 
-def exec_inst(mapping, reg, code):
-    inst, a, b, c = code
-    inst_name = mapping[inst]
+def exec_inst(inst_name, reg, code):
+    _, a, b, c = code
     if inst_name == 'addr':
         reg[c] = reg[a] + reg[b]
     elif inst_name == 'addi':
@@ -121,22 +84,23 @@ def solve(data):
         if inst not in op_code:
             op_code[inst] = set(valids)
         else:
-            op_code[inst] = op_code[inst].intersection(set(valids))
+            op_code[inst] = op_code[inst] & set(valids)
     
     mapping = {}
-    while len(mapping) < 16:
+    while len(mapping) < INST_COUNT:
         for inst, valids in op_code.items():
             if len(valids) == 1:
                 mapping[inst] = list(valids)[0]
         for inst, valids in op_code.items():
             op_code[inst] = valids - set(mapping.values())
 
-    assert len(mapping) == 16
-    assert len(set(mapping.values())) == 16
+    assert len(mapping) == INST_COUNT
+    assert len(set(mapping.values())) == INST_COUNT
 
     reg = [0, 0, 0, 0]
     for code in program:
-        exec_inst(mapping, reg, code)
+        inst_name = mapping[code[0]]
+        exec_inst(inst_name, reg, code)
     return s, reg[0]
 
 
