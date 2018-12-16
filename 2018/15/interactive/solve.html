@@ -5,6 +5,9 @@
             https://finalbossblues.itch.io/tf-jungle-tileset
         -->
         <style>
+            body {
+                font-family: 'Courier New', Courier, monospace;
+            }
             span.tile {
                 display: inline-block;
                 width: 16px;
@@ -140,9 +143,13 @@
                     Gnome
                 </label>
                 <br>
-                <button id="start">Start</button>
-                <button id="pause" disabled>Pause</button>
-                <button id="stop" disabled>Stop</button>
+                <button id="stop" disabled>Clear</button>
+                <br>
+                <button id="back_full_turn">&lt;&lt;</button>
+                <button id="play">Play</button>
+                <button id="unit_turn">&gt;</button>
+                <button id="full_turn">&gt;&gt;</button>
+                <button id="all_turns">&gt;&gt;&gt;</button>
             </form>
             <div id="container">
 
