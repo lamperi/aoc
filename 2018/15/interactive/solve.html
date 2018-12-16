@@ -66,17 +66,21 @@
             .tile > .unit {
                 display: inline-block;
                 position: relative;
-                background: blue;
                 left: 4px;
                 top: 2px;
                 height: 50%;
                 width: 50%;
             }
-            .tile > .unit.E {
+            .unit.E {
                 background: blue;
             }
-            .tile > .unit.G {
+            .unit.G {
                 background:brown;
+            }
+            .unit.example {
+                display: inline-block;
+                width: 16;
+                height: 16;
             }
         </style>
     </head>
@@ -126,6 +130,16 @@
                     <input id="elfCanDie" type="checkbox" checked>
                 </label>
                 <br>    
+                <label>
+                    <span class="example unit E"></span>
+                    Elf
+                </label>
+                <br>
+                <label>
+                    <span class="example unit G"></span>
+                    Gnome
+                </label>
+                <br>
                 <button id="start">Start</button>
                 <button id="pause" disabled>Pause</button>
                 <button id="stop" disabled>Stop</button>
