@@ -1,5 +1,12 @@
-function key(unit_type, y, x) {
-    return unit_type + ',' + y + ',' + x;
+// Rendering
+
+function turnTitle(turnNumber) {
+    const title = document.createElement('span');
+    title.style.position = 'absolute';
+    title.style.fontSize = 'xx-large';
+    title.style.fontFamily = 'monospace';
+    title.textContent = 'Turns completed: ' + turnNumber;
+    return title;
 }
 
 function blockTile(y,x) {
@@ -39,9 +46,10 @@ function newLine() {
     return div;
 }
 
-function renderWorld(worldData, area) {
+function renderWorld(turn, worldData, area) {
     const container = document.getElementById('container');
     container.innerHTML = '';
+    container.append(turnTitle(turn));
     for (let y = 0; y < area.length; ++y) {
         const line = area[y];
         for (let x = 0; x < line.length; ++x) {
@@ -71,6 +79,8 @@ function renderElfDied(value) {
     container.append(document.createTextNode(content));
 }
 
+// Input
+
 function parseInput(input, elfAtk) {
     const worldData = {}
     const area = input.split("\n");
@@ -94,6 +104,13 @@ function parseInput(input, elfAtk) {
     }
     return {worldData, area}
 }
+
+// Algorithm
+
+function key(unit_type, y, x) {
+    return unit_type + ',' + y + ',' + x;
+}
+
 
 function point(y,x) {
     return y + ',' + x;
@@ -231,10 +248,8 @@ function* handleFrame(t, worldData, area) {
             setTile(area, target.y, target.x, unitType);
             worldData[key(unitType, target.y, target.x)] = worldData[key(unitType, y, x)];
             delete worldData[key(unitType, y, x)];
-            // YIELD MOVE
             yield {action: 'move', unitType};
             const {fight, casualty} = tryFight(area, {unitType, y: target.y, x: target.x}, worldData);
-            // YIELD FIGHT
             if (fight) {
                 yield {action: 'fight', unitType, casualty};
             }
@@ -246,76 +261,141 @@ function* handleFrame(t, worldData, area) {
         } else {
             yield {action: 'pass', unitType};
         }
+        yield {action: 'unit turn over'};
     }
 }
 
-function* handleSimulation(worldData, area, elfCanDie) {
-    let time = 0;
-    while (time < 2000) {
-        const round = handleFrame(time, worldData, area);
-        while (true) {
-            const {value, done} = round.next();
-            if (done) {
-                break;
-            }
-            yield value;
-            if (value.action === 'combatStop') {
-                return;
-            }
-            if (!elfCanDie && value.action === 'fight' && value.casualty === 'E') {
-                yield {action: 'elfDied'};
-                return;
+function* handleSimulation(state, elfCanDie) {
+    state.running = true;
+    while (true) {
+        if (state.running === false) {
+            yield {action: 'stopped'};
+        } else {
+            outer:
+            while (true) {
+                const round = handleFrame(state.time, state.worldData, state.area);
+                while (true) {
+                    const {value, done} = round.next();
+                    if (done) {
+                        break;
+                    }
+                    if (value.action === 'combatStop') {
+                        state.running = false;
+                        yield value;
+                        break outer;
+                    }
+                    if (!elfCanDie && value.action === 'fight' && value.casualty === 'E') {
+                        state.running = false;
+                        yield {action: 'elfDied'};
+                        break outer;
+                    }
+                    yield value;
+                }
+                state.time += 1;
+                yield {action: 'full turn over'};
             }
         }
-        time += 1;
     }
 }
 
 let interval = 16;
-function startSimulation(input, elfAtk, elfCanDie) {
-    const {worldData, area} = parseInput(input, elfAtk);
-    renderWorld(worldData, area);
-    window.worldData = worldData;
+function initSimulation(input, elfAtk, elfCanDie, onFinishCallback) {
+    const state = parseInput(input, elfAtk);
+    state.time = 0;
+    renderWorld(state.time, state.worldData, state.area);
+    // Debug state with global
+    window.state = state;
 
-    const simulator = handleSimulation(worldData, area, elfCanDie);
+    const simulator = handleSimulation(state, elfCanDie);
     let currentResolve = null;
-    let onFinishCallback = null;
+    let actionMatch = null;
+    let lastAction = null;
+    let doRenderDetails = true;
+    let doRenderTurnEnd = true;
+    const stateRecord = [{
+        action: 'initial',
+        state: JSON.stringify(state)}];
     function iterate() {
-        const {value, done} = simulator.next();
-        if (done) {
-            onFinishCallback();
-            clearInterval(timerId);
-            timerId = null;
-            return;
-        }
-        
-        renderWorld(worldData, area);
-        if (value && value.action === 'combatStop') {
-            renderStats(value);
-        }
-        if (value && value.action === 'elfDied') {
-            renderElfDied(value);
-        }
-        if (currentResolve !== null) {
-            clearInterval(timerId);
-            timerId = null;
-            currentResolve();
-            currentResolve = null;
+        while (true) {
+            const {value, done} = simulator.next();
+            if (done) {
+                throw new Error('Simulator should never be done');
+            }
+            if (!value || !value.action) {
+                throw new Error('Invalid next state');
+            }
+            if (value.action === 'stopped') {
+                // Nothing to be done unless state is reverted.
+                onFinishCallback();
+                clearInterval(timerId);
+                timerId = null;
+                if (currentResolve !== null) {
+                    currentResolve(false);
+                    currentResolve = null;
+                    actionMatch = null;
+                }
+                return;
+            }
+            lastAction = value.action;
+
+            if (value.action === 'full turn over') {
+                stateRecord.push({action: value.action,
+                    state: JSON.stringify(state)});
+                if (doRenderTurnEnd) {
+                    renderWorld(state.time, state.worldData, state.area);
+                    if (currentResolve === null) {
+                        return;
+                    }
+                }
+            }
+            if ((value.action === 'move' || value.action === 'fight')) {
+                if (doRenderDetails) {
+                    renderWorld(state.time, state.worldData, state.area);
+                    if (currentResolve === null) {
+                        return;
+                    }
+                }
+            }
+            if (value.action === 'combatStop' || value.action === 'elfDied') {
+                renderWorld(state.time, state.worldData, state.area);
+                if (value.action === 'combatStop') {
+                    renderStats(value);
+                } else {
+                    renderElfDied(value);
+                }
+                onFinishCallback();
+                clearInterval(timerId);
+                timerId = null;
+                if (currentResolve === null) {
+                    return;
+                }
+            }
+            if (currentResolve !== null && actionMatch(value.action)) {
+                clearInterval(timerId);
+                timerId = null;
+                currentResolve(false);
+                currentResolve = null;
+                actionMatch = null;
+                return;
+            }
         }
     }
 
-    let timerId = setInterval(iterate, interval);
+    let timerId = null;
     return {
         pause() {
             if (currentResolve !== null) {
-                throw new Error('Already pausing');
+                throw new Error('Already resolving');
             }
-            return new Promise((resolve, reject) => {   
+            doRenderDetails = true;
+            doRenderTurnEnd = false;
+            return new Promise((resolve, reject) => {
                 if (timerId !== null) {
+                    actionMatch = () => true;
                     currentResolve = resolve;
                 } else {
                     timerId = setInterval(iterate, interval);
-                    resolve();
+                    resolve(true);
                 }
             });
         },
@@ -323,16 +403,72 @@ function startSimulation(input, elfAtk, elfCanDie) {
             if (currentResolve !== null) {
                 throw new Error('Already pausing');
             }
-            return new Promise((resolve, reject) => {   
+            return new Promise((resolve, reject) => {
                 if (timerId !== null) {
+                    actionMatch = (a) => true;
                     currentResolve = resolve;
                 } else {
                     resolve();
                 }
             });
         },
-        onFinish(cb) {
-            onFinishCallback = cb;
+        until(action) {
+            if (timerId) {
+                throw new Error('Invalid state');
+            }
+            actionMatch = (a) => a === action;
+            if (action === 'full turn over') {
+                doRenderDetails = false;
+                doRenderTurnEnd = true;
+            } else if (action === 'combatStop') {
+                doRenderDetails = false;
+                doRenderTurnEnd = false;
+                actionMatch = (a) => a === action || a === 'elfDied';
+            } else {
+                doRenderDetails = true;
+                doRenderTurnEnd = false;
+            }
+            timerId = setInterval(iterate, interval);
+            return new Promise((resolve, reject) => {
+                currentResolve = resolve;
+            });
+        },
+        async revertTurn() {
+            if (timerId) {
+                throw new Error('Invalid state');
+            }
+            let promise;
+            if (lastAction === 'full turn over' || !state.running) {
+                promise = new Promise((resolve) => {
+                    resolve();
+                });
+            } else {
+                doRenderDetails = false;
+                doRenderTurnEnd = false;
+                timerId = setInterval(iterate, interval);
+                promise = new Promise((resolve, reject) => {
+                    actionMatch = (a) => a === 'full turn over';
+                    currentResolve = resolve;
+                });
+            }
+            await promise;
+            if (lastAction === 'full turn over' && stateRecord.length > 1) {
+                stateRecord.pop();
+            }
+            while (stateRecord.length > 0) {
+                const previousState = stateRecord.pop();
+                if (previousState.action === 'full turn over' || previousState.action === 'initial') {
+                    stateRecord.push(previousState);
+                    const prevousStateParsed = JSON.parse(previousState.state);
+                    state.worldData = prevousStateParsed.worldData;
+                    state.area = prevousStateParsed.area;
+                    state.time = prevousStateParsed.time;
+                    state.running = true;
+                    lastAction = previousState.action;
+                    renderWorld(state.time, state.worldData, state.area);
+                    break;
+                }
+            }
         }
     }
 }
@@ -340,59 +476,100 @@ function startSimulation(input, elfAtk, elfCanDie) {
 const mapInput = document.getElementById('map');
 const elfAtkInput = document.getElementById('elfAtk');
 const elfCanDieInput = document.getElementById('elfCanDie');
-const startBtn = document.getElementById('start');
-const pauseBtn = document.getElementById('pause');
 const stopBtn = document.getElementById('stop');
+const playBtn = document.getElementById('play');
+const unitTurnBtn = document.getElementById('unit_turn');
+const fullTurnBtn = document.getElementById('full_turn');
+const allTurnsBtn = document.getElementById('all_turns');
+const backFullTurnBtn = document.getElementById('back_full_turn');
+
 let simulation = null;
-startBtn.addEventListener('click', (ev) => {
-    startBtn.disabled = true;
-    pauseBtn.disabled = false;
+function setRunningInputs(running) {
     stopBtn.disabled = false;
-    mapInput.disabled = true;
-    elfAtkInput.disabled = true;
-    elfCanDieInput.disabled = true;
-
+    backFullTurnBtn.disabled = running;
+    allTurnsBtn.disabled = running;
+    fullTurnBtn.disabled = running;
+    unitTurnBtn.disabled = running;
+    if (running) {
+        enableInputs(!running);
+    }
+}
+function enableInputs(enabled) {
+    mapInput.disabled = !enabled;
+    elfAtkInput.disabled = !enabled
+    elfCanDieInput.disabled = !enabled;
+}
+function createSimulation() {
+    setRunningInputs(true);
+    if (simulation) {
+        return;
+    }
     const input = mapInput.value;
-    const elfAtk = elfAtkInput.value;    
+    const elfAtk = elfAtkInput.value;
     const elfCanDie = elfCanDieInput.checked;
-    simulation = startSimulation(input, elfAtk, elfCanDie);
-    simulation.onFinish(() => {
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
+    simulation = initSimulation(input, elfAtk, elfCanDie, () => {
+        setRunningInputs(false);
         stopBtn.disabled = true;
-
-        mapInput.disabled = false;
-        elfAtkInput.disabled = false;
-        elfCanDieInput.disabled = false;
-    });    
-    ev.preventDefault();
-});
-pauseBtn.addEventListener('click', (ev) => {
-    pauseBtn.disabled = true;
-    simulation.pause().then(() => {
-        pauseBtn.disabled = false;
-        stopBtn.disabled = false;
+        playBtn.textContent = 'Play';
     });
+}
+stopBtn.addEventListener('click', async (ev) => {
     ev.preventDefault();
-});
-stopBtn.addEventListener('click', (ev) => {
-    pauseBtn.disabled = true;
-    stopBtn.disabled = true;
-    simulation.stop().then(() => {
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
+    if (confirm("Are you sure you want to clear simulator?")) {
         stopBtn.disabled = true;
-
-        mapInput.disabled = false;
-        elfAtkInput.disabled = false;
-        elfCanDieInput.disabled = false;
-    });
+        await simulation.stop()
+        simulation = null;
+        enableInputs(true);
+        playBtn.textContent = 'Play';
+        renderInitialMap();
+    }
+});
+playBtn.addEventListener('click', async (ev) => {
     ev.preventDefault();
+    createSimulation();
+
+    const isRunning = await simulation.pause();
+    if (isRunning) {
+        playBtn.textContent = 'Pause'
+        setRunningInputs(true);
+    } else {
+        playBtn.textContent = 'Play'
+        setRunningInputs(false);
+    }
+    playBtn.disabled = false;
+    stopBtn.disabled = false;
 });
 
-(function renderInitialMap() {
+function forwarder(action) {
+    return async (ev) => {
+        ev.preventDefault();
+        createSimulation();
+        playBtn.disabled = true;
+
+        await simulation.until(action);
+        setRunningInputs(false);
+        playBtn.disabled = false;
+    };
+}
+
+unitTurnBtn.addEventListener('click', forwarder('unit turn over'));
+fullTurnBtn.addEventListener('click', forwarder('full turn over'));
+allTurnsBtn.addEventListener('click', forwarder('combatStop'));
+
+backFullTurnBtn.addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    createSimulation();
+    playBtn.disabled = true;
+
+    await simulation.revertTurn();
+    setRunningInputs(false);
+    playBtn.disabled = false;
+});
+
+function renderInitialMap() {
     const input = mapInput.value;
     const elfAtk = elfAtkInput.value;
     const {worldData, area} = parseInput(input, elfAtk);
-    renderWorld(worldData, area);
-})();
+    renderWorld(0, worldData, area);
+};
+renderInitialMap();
