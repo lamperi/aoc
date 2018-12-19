@@ -1,0 +1,42 @@
+#ip 3
+ 0 addi 3 16 3
+ 1 seti 1 6 1
+ 2 seti 1 9 5
+ 3 mulr 1 5 2 --> set 3 to r3, set r1*r5 to r2, set 4 to ip
+ 4 eqrr 2 4 2 --> set 4 to r3, set (r2 == r4 ? 1 : 0) to r2, set 5 to ip
+ 5 addr 2 3 3 --> set 5 to r3, set r2+r3 to r3, set 6 or 7 to ip (jump 1 or 2 IF r1*r5 == r4 at start of loop)
+ 6 addi 3 1 3 --> set 6 to r3, set r3+1 to r3, set 7 to ip (jump over next instruction)
+ 7 addr 1 0 0 --> set 7 to r3, set r0+r1 to r0, set 8 to ip
+ 8 addi 5 1 5 --> set 8 to r3, set r5+1 to r5, set 9 to ip
+ 9 gtrr 5 4 2 --> set 9 to r3, set (r5 > r4 ? 1 : 0) to r2, set 10 to ip
+10 addr 3 2 3 --> set 10 to r3, set r2+r3 to r3, set 11 or 12 to ip (jump 1 or 2 IF r5 > r4)
+11 seti 2 4 3 --> set 11 to r3, set 2 to r3, set 3 to ip
+
+## This loop will break when r5 > r4 for ip == 10
+# Every iteration r5 will grow by 1
+# If r1*r5 == r4, then r1 will grow -> basically r1 will grow when ever we find a number which is a dividor of r4
+
+12 addi 1 1 1
+13 gtrr 1 4 2
+14 addr 2 3 3
+15 seti 1 0 3
+16 mulr 3 3 3
+17 addi 4 2 4
+18 mulr 4 4 4
+19 mulr 3 4 4
+20 muli 4 11 4
+21 addi 2 5 2
+22 mulr 2 3 2
+23 addi 2 1 2
+24 addr 4 2 4
+25 addr 3 0 3
+26 seti 0 3 3
+27 setr 3 6 2
+28 mulr 2 3 2
+29 addr 3 2 2
+30 mulr 3 2 2
+31 muli 2 14 2
+32 mulr 2 3 2
+33 addr 4 2 4
+34 seti 0 8 0
+35 seti 0 8 3
