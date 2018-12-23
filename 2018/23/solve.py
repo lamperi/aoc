@@ -50,7 +50,7 @@ def solve1(input_data):
 def solve2(input_data, debug=False):
     nanobots = parse(input_data)
     queue = [(0, 0, 0, 0, 0)]
-    visited = set([(0,0,0)])
+    visited = set([(0, 0, 0)])
     min_count_dist = (0, 0)
     since_best = 0
     while queue:
@@ -69,7 +69,7 @@ def solve2(input_data, debug=False):
             if adj_pos not in visited:
                 visited.add(adj_pos)
                 adj_count = get_count(adj_pos, nanobots)
-                adj_dist = manhattan((0,0,0), pos)
+                adj_dist = manhattan((0,0,0), adj_pos)
                 heappush(queue, (-adj_count, adj_dist, *adj_pos))
     return min_count_dist[1]
 
