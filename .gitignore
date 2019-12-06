@@ -1,2 +1,4 @@
 .project
 .pydevproject
+# best practices is to not distribute the inputs
+input.txt
