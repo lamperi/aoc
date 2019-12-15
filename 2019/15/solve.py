@@ -111,24 +111,22 @@ def run_yield(nums, get_input):
             raise Exception('opcode={}'.format(opcode))
     return OUTPUT
 
+# END OF INTCODE INTERPRETER
+
 def print_area(area):
     image = []
-    min_x = 0
-    max_x = 0
-    for line in area.values():
-        xx = sorted(line.keys())
-        if xx[0] < min_x:
-            min_x = xx[0]
-        if xx[-1] > max_x:
-            max_x = xx[-1]
-    for y in sorted(area.keys()):
-        line = area[y]
+    min_x = min(x for y,x in area.keys())
+    max_x = max(x for y,x in area.keys())
+    min_y = min(y for y,x in area.keys())
+    max_y = max(y for y,x in area.keys())
+    for y in range(min_y, max_y+1):
         row = []
         for x in range(min_x, max_x+1):
-            val = line.get(x, " ")
+            val = area.get((y,x), " ")
             row.append(val)
         image.append("".join(row))
-    print("Y:[{}, {}] X:[{},{}]".format(min(area.keys()), max(area.keys()), min_x, max_x))
+
+    print("Y:[{}, {}] X:[{},{}]".format(min_y, max_y, min_x, max_x))
     print("\n".join(image))
 
 
@@ -147,7 +145,7 @@ def bfs(area, goal, pos):
         for y,x in (pos_sum(p, dir_to_pos(i)) for i in (1,2,3,4)):
             if (y,x) in visited:
                 continue
-            if area[y].get(x, "#") != "#":
+            if area.get((y,x), "#") != "#":
                 l.append((y,x))
                 visited[(y,x)] = visited[p] + 1
                 if (y,x) == goal:
@@ -162,58 +160,73 @@ def bfs_full(area, pos):
         for y,x in (pos_sum(p, dir_to_pos(i)) for i in (1,2,3,4)):
             if (y,x) in visited:
                 continue
-            if area[y].get(x, "#") != "#":
+            if area.get((y,x), "#") != "#":
                 l.append((y,x))
                 visited[(y,x)] = visited[p] + 1
     return max(visited.values())
 
+def return_dir(dir):
+    return {1: 2, 2: 1, 3: 4, 4: 3,None:None}[dir]
+
 def solve(intcode):
-    area = defaultdict(dict)
-    area[0][0] = "D"
+    area = {}
+    area[(0,0)] = "D"
     pos = 0, 0  # y, x
+    opos = None
     last_input = [None]
+    dfs_state = {}
 
     def input_func():
-        unvisited = []
-        visited = []
-        for i in (1,2,3,4):
-            y,x = pos_sum(pos, dir_to_pos(i))
-            if area[y].get(x, " ") == " ":
-                unvisited.append(i)
-            elif area[y].get(x, " ") != "#":
-                visited.append(i)
-        if unvisited:
-            last_input[0] = choice(unvisited)
+        if pos not in dfs_state:
+            unvisited = []
+            for i in (1,2,3,4):
+                y,x = pos_sum(pos, dir_to_pos(i))
+                if area.get((y,x), " ") == " ":
+                    unvisited.append(i)
+            dfs_state[pos] = {
+                'backtrack': return_dir(last_input[0]),
+                'unvisited': unvisited,
+                'unvisited_index': 0,
+            }
+        state = dfs_state[pos]
+        if state['unvisited_index'] == len(state['unvisited']):
+            last_input[0] = state['backtrack']
         else:
-            last_input[0] = choice(visited)
+            last_input[0] = state['unvisited'][state['unvisited_index']]
+            state['unvisited_index'] += 1
+        # Special case: we have mapped the whole area, just return something valid
+        if last_input[0] is None:
+            return 1
         return last_input[0]
     
     for t, reply in enumerate(run_yield(intcode, input_func)):
-        if reply == 0:
-            y,x = pos_sum(pos, dir_to_pos(last_input[0]))
-            area[y][x] = "#"
-        elif reply == 1:
-            area[pos[0]][pos[1]] = "."
-            pos = pos_sum(pos, dir_to_pos(last_input[0]))
-            area[pos[0]][pos[1]] = "D"
-        elif reply == 2:
-            area[pos[0]][pos[1]] = "."
-            pos = pos_sum(pos, dir_to_pos(last_input[0]))
-            area[pos[0]][pos[1]] = "O"
+        # Quit when all of the area has been mapped
+        if last_input[0] is None:
             break
+        if reply == 0:
+            c = pos_sum(pos, dir_to_pos(last_input[0]))
+            area[c] = "#"
+        elif reply == 1:
+            area[pos] = "."
+            pos = pos_sum(pos, dir_to_pos(last_input[0]))
+            area[pos] = "D"
+        elif reply == 2:
+            area[pos] = "."
+            pos = pos_sum(pos, dir_to_pos(last_input[0]))
+            area[pos] = "D"
+            opos = pos
         else:
             raise Exception("Unknown reply {}".format(reply))
-        if t % 100000 == 0:
-            print("Iterated {} rounds".format(t))
 
-    print("Final map")
-    area[0][0] = "S"
+    print("Final map after BFS of {} iterations".format(t))
+    area[(0,0)] = "S"
+    area[opos] = "O"
     print_area(area)
     print()
 
-    goal = pos
+    goal = opos
     pos = 0, 0
-    print("Solve DFS from {} to {}".format(pos, goal))
+    print("Solve BFS from {} to {}".format(pos, goal))
 
     p1 = bfs(area, goal, pos)
     p2 = bfs_full(area, goal)
