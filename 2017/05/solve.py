@@ -1,5 +1,7 @@
-import sys
-data = open("input.txt").read().strip()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 def func(data):
     pos = 0
