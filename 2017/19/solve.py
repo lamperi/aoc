@@ -5,7 +5,11 @@ example = """     |
      |  |  |  D 
      +B-+  +--+ 
 """
-data = open("input.txt").read()
+
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read()
 
 # Part 1
 
