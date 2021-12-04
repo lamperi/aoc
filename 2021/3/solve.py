@@ -30,7 +30,7 @@ def transpose_lines(data):
             if n == 0:
                 tp.append([c])
             else:
-                tp[i].append(int(c))
+                tp[i].append(c)
     return tp
 
 def part1(data):
@@ -61,7 +61,7 @@ def part2(data):
         if len(oxygen) == 1:
             break
     co2 = data.splitlines()
-    for i in range(0, len(co2[0])):
+    for i in range(0, 200):
         counts={"0": 0, "1": 0}
         for n in co2:
             counts[n[i]]+=1
@@ -70,8 +70,8 @@ def part2(data):
         if len(co2) == 1:
             break
 
-    oxygen_rating=int("".join(str(b) for b in oxygen), 2)
-    co2_rating=int("".join(str(b) for b in co2), 2)
+    oxygen_rating=int(oxygen[0], 2)
+    co2_rating=int(co2[0], 2)
     return oxygen_rating * co2_rating
 
 print(part2(test), 230)
