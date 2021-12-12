@@ -1,5 +1,7 @@
-import sys
-data = sys.stdin.read().strip()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 # part 1
 def captcha(data, offset=1):
@@ -16,7 +18,7 @@ print(captcha("91212129"))
 print(captcha(data))
 
 def captcha2(data):
-   return captcha(data, len(data)/2)
+   return captcha(data, len(data)//2)
 
 print(captcha2("1212"))
 print(captcha2("1221"))

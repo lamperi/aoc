@@ -1,4 +1,4 @@
-import sys, operator, functools, binascii
+import operator, functools, binascii
 data = "vbqugkhl"
 
 def reverse(index, length, value):

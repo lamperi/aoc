@@ -1,7 +1,10 @@
 example = """p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>
 p=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>
 """
-data = open("input.txt").read()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 def sum_vec(v1, v2):
     return [i1+i2 for i1, i2 in zip(v1, v2)]

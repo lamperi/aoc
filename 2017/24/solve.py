@@ -6,7 +6,10 @@ example = """0/2
 0/1
 10/1
 9/10"""
-data = open("input.txt").read()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 from collections import defaultdict
 

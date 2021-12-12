@@ -17,7 +17,10 @@ In state B:
     - Write the value 1.
     - Move one slot to the right.
     - Continue with state A."""
-data = open("input.txt").read()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 
 def func(data):
