@@ -1,5 +1,9 @@
-import sys, operator, functools, binascii
-data = open("input.txt").read().strip()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
+inputs = [int(w.split()[-1]) for w in data.splitlines()]
+print(inputs)
 
 def to_bin(i):
     return i & 0xffff
@@ -53,8 +57,8 @@ print(func1(65, 8921, 5), 1)
 print(func2(65, 8921, 1056), 1)
 
 print(func1(65, 8921), 588)
-print(func1(512, 191))
+print(func1(*inputs))
 
 print(func2(65, 8921), 309)
-print(func2(512, 191))
+print(func2(*inputs))
 

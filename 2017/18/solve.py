@@ -17,7 +17,10 @@ rcv b
 rcv c
 rcv d"""
 
-data = open("input.txt").read().strip()
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 # Part 1
 

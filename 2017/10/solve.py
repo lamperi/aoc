@@ -1,5 +1,8 @@
-import sys, operator, functools, binascii
-data = open("input.txt").read().strip()
+import operator, functools, binascii
+import os.path
+INPUT=os.path.join(os.path.dirname(__file__), "input.txt")
+with open(INPUT) as f:
+    data = f.read().strip()
 
 # Shared
 
