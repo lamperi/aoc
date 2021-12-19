@@ -12,38 +12,16 @@ with open(INPUT) as f:
     test = f.read()
 
 def orientations(xyz):
-    # x up
-    yield xyz[0], xyz[1], xyz[2]
-    yield xyz[0], xyz[2], -xyz[1]
-    yield xyz[0], -xyz[1], -xyz[2]
-    yield xyz[0], -xyz[2], xyz[1]
-    # x down
-    yield -xyz[0], xyz[2], xyz[1]
-    yield -xyz[0], xyz[1], -xyz[2]
-    yield -xyz[0], -xyz[2], -xyz[1]
-    yield -xyz[0], -xyz[1], xyz[2]
-    # x right
-    yield xyz[2], xyz[0], xyz[1]
-    yield xyz[2], xyz[1], -xyz[0]
-    yield xyz[2], -xyz[0], -xyz[1]
-    yield xyz[2], -xyz[1], xyz[0]
-    # x left
-    yield -xyz[2], xyz[1], xyz[0]
-    yield -xyz[2], xyz[0], -xyz[1]
-    yield -xyz[2], -xyz[1], -xyz[0]
-    yield -xyz[2], -xyz[0], xyz[1]
-    # x forward
-    yield xyz[1], xyz[2], xyz[0]
-    yield xyz[1], xyz[0], -xyz[2]
-    yield xyz[1], -xyz[2], -xyz[0]
-    yield xyz[1], -xyz[0], xyz[2]
-    # x backward
-    yield -xyz[1], xyz[0], xyz[2]
-    yield -xyz[1], xyz[2], -xyz[0]
-    yield -xyz[1], -xyz[0], -xyz[2]
-    yield -xyz[1], -xyz[2], xyz[0]
+    xyz=tuple(xyz)
+    for i in range(6):           
+        yield xyz
+        for _ in range(4):
+            xyz = xyz[0], xyz[2], -xyz[1]
+            yield xyz
+        xyz = (-xyz[0], -xyz[1], xyz[2]) if i%2 == 0 else (xyz[2], -xyz[0], -xyz[1])
 
 assert(len(set(orientations(range(3))))) == 24
+
 
 def part12(data):
     scanners=defaultdict(list)
