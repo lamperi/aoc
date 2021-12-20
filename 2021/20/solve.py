@@ -32,6 +32,7 @@ def get_window(image, y, x, d):
 
 def get_lit_pixels(data, t):
     enchancement, image = data.split("\n\n")
+    # Make image mutable
     image = [[c for c in line] for line in image.splitlines()]
     d = "."
     for _ in range(t):
