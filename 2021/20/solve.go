@@ -23,8 +23,6 @@ func parse(bytes []byte) *problem {
 		for x, c := range line {
 			if c == '#' {
 				image[point{y, x}] = uint8(1)
-			} else {
-				image[point{y, x}] = uint8(0)
 			}
 		}
 	}
@@ -68,7 +66,9 @@ func runImage(prob problem, maxT int) uint32 {
 						shift -= 1
 					}
 				}
-				image[point{y, x}] = prob.enchancement[val]
+				if val != uint16(defaultFill) {
+					image[point{y, x}] = prob.enchancement[val]
+				}
 			}
 		}
 		if prob.enchancement[0] == 1 {
