@@ -51,6 +51,10 @@ func parseFromFile() (*problem, error) {
 func runImage(prob problem, maxT int) uint32 {
 	defaultFill := uint8(0)
 	for t := 0; t < maxT; t++ {
+		nextDefaultFill := defaultFill
+		if prob.enchancement[0] == 1 {
+			nextDefaultFill = 1 - defaultFill
+		}
 		image := make(map[point]uint8)
 		for y := 0; y < prob.maxPoint.y+2; y++ {
 			for x := 0; x < prob.maxPoint.x+2; x++ {
@@ -66,18 +70,13 @@ func runImage(prob problem, maxT int) uint32 {
 						shift -= 1
 					}
 				}
-				if val != uint16(defaultFill) {
-					image[point{y, x}] = prob.enchancement[val]
+				fillVal := prob.enchancement[val]
+				if fillVal != nextDefaultFill {
+					image[point{y, x}] = fillVal
 				}
 			}
 		}
-		if prob.enchancement[0] == 1 {
-			if defaultFill == 0 {
-				defaultFill = 1
-			} else {
-				defaultFill = 0
-			}
-		}
+		defaultFill = nextDefaultFill
 		prob.image = image
 		prob.maxPoint.y += 2
 		prob.maxPoint.x += 2
