@@ -133,7 +133,7 @@ def get_reachable_wait_pos(start_pos, pos_set):
             yield (y,x)
     
 
-def part2(data, insert=True):
+def part2(data, insert=True, print_path=False):
     area = {}
     if insert:
         lines = data.splitlines()
@@ -151,13 +151,14 @@ def part2(data, insert=True):
     )
     count_per_type = len(state[1])//4
     goals = {k: v[-count_per_type:] for k, v in GOALS.items()}
-    visited_states = {state}
+    visited_states = {state: (None, None)}
     heap = [state]
     rounds = 0
     types = [chr(ord('A') + i//count_per_type) for i in range(4*count_per_type)]
     type_slices = [
         slice(count_per_type*(i//count_per_type), count_per_type*(i//count_per_type)+count_per_type)
         for i in range(4*count_per_type)]
+    prev = {}
     while heap:
         rounds += 1
         optimal_moves = []
@@ -182,7 +183,7 @@ def part2(data, insert=True):
                     new_pos = pos_replace_sort(pos, i, (y,x))
                     new_state = (energy+energy_cost, new_pos)
                     if new_state not in visited_states:
-                        visited_states.add(new_state)
+                        visited_states[new_state] = (energy, pos)
                         non_optimal_moves.append(new_state)
             else:
                 # Case 2: our amphipod is not in goal area
@@ -202,7 +203,7 @@ def part2(data, insert=True):
                     new_pos = pos_replace_sort(pos, i, goal_pos)
                     new_state = (energy+energy_cost, new_pos)
                     if new_state not in visited_states:
-                        visited_states.add(new_state)
+                        visited_states[new_state] = energy, pos
                         optimal_moves.append(new_state)
                         break
         if optimal_moves:
@@ -213,7 +214,17 @@ def part2(data, insert=True):
         for move in non_optimal_moves:
             heappush(heap, move)
         if goal_tile == 4:
-            #print("went", rounds, "rounds")
+            e = energy
+            if print_path:
+                path = []
+                while pos != None:
+                    path.append(pos)
+                    e, pos = visited_states[(e,pos)]
+                print("print path of length", len(path))
+                for pos in reversed(path):
+                    print_area(area, pos)
+                    pass
+                print("printed")
             return energy
     assert False, 'unsolvable'
 
@@ -227,4 +238,4 @@ assert(part1(test) == 12521)
 print(part1(data))
 
 assert(part2(test) == 44169)
-print(part2(data))
+print(part2(data, print_path=True))
