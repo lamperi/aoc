@@ -1,73 +1,61 @@
 import os.path
-import operator
-from itertools import combinations, permutations, pairwise
-from functools import reduce, partial
-from math import prod
 
-INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
-with open(INPUT) as f:
-    data = f.read()
+FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
+with open(FILE) as f:
+    INPUT = f.read()
 
 TEST = """A Y
 B X
 C Z"""
 
 def solve(data):
+    scores = {
+        "X": 1,
+        "Y": 2,
+        "Z": 3,
+    }
+    outcomes = {
+        "X": {
+            "A": 3, "B": 0, "C": 6
+        },
+        "Y": {
+            "A": 6, "B": 3, "C": 0,
+        },
+        "Z": {
+            "A": 0, "B": 6, "C": 3,
+        }
+    }
     score = 0
     for line in data.splitlines():
         elf, me = line.split()
-        if me == "X":
-            score += 1
-            if elf == "A":
-                score += 3
-            if elf == "C":
-                score += 6
-        if me == "Y":
-            score += 2
-            if elf == "B":
-                score += 3
-            if elf == "A":
-                score += 6
-        if me == "Z":
-            score += 3
-            if elf == "C":
-                score += 3
-            if elf == "B":
-                score += 6
+        score += outcomes[me][elf] + scores[me]
     return score
 
 print(solve(TEST))
-print(solve(data))
+print(solve(INPUT))
 
 def solve2(data):
+    outcomes = {
+        "X": 0,
+        "Y": 3,
+        "Z": 6,
+    }
+    scores = {
+        "X": {
+            "A": 3, "B": 1, "C": 2
+        },
+        "Y": {
+            "A": 1, "B": 2, "C": 3,
+        },
+        "Z": {
+            "A": 2, "B": 3, "C": 1,
+        }
+    }
     score = 0
     for line in data.splitlines():
         elf, me = line.split()
-        if me == "X":
-            score += 0
-            if elf == "A":
-                score += 3
-            if elf == "B":
-                score += 1
-            if elf == "C":
-                score += 2
-        if me == "Y":
-            score += 3
-            if elf == "A":
-                score += 1
-            if elf == "B":
-                score += 2
-            if elf == "C":
-                score += 3        
-        if me == "Z":
-            score += 6
-            if elf == "A":
-                score += 2
-            if elf == "B":
-                score += 3
-            if elf == "C":
-                score += 1   
+        score += scores[me][elf] + outcomes[me]
     return score
 
 print(solve2(TEST))
-print(solve2(data))
+print(solve2(INPUT))
