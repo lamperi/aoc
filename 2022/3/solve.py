@@ -1,12 +1,8 @@
 import os.path
-import operator
-from itertools import combinations, permutations, pairwise
-from functools import reduce, partial
-from math import prod
 
-INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
-with open(INPUT) as f:
-    data = f.read()
+FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
+with open(FILE) as f:
+    INPUT = f.read()
 
 TEST = """vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
@@ -18,9 +14,10 @@ CrZsJsPPZsGzwwsLwLmpwMDw"""
 def solve(data):
     score = 0
     for line in data.splitlines():
-        a,b = line[:len(line)//2], line[len(line)//2:]
-        c = ((set(a)&set(b)))
-        assert len(c) == 1
+        a, b = line[:len(line)//2], line[len(line)//2:]
+        # Intersect-all:
+        #c = functools.reduce(operator.iand, map(set, sacks))
+        c = set(a) & set(b)
         c = next(iter(c))
         if c.isupper():
             p = ord(c) - ord('A') + 27
@@ -30,15 +27,14 @@ def solve(data):
     return score
 
 print(solve(TEST))
-print(solve(data))
+print(solve(INPUT))
 
 def solve2(data):
     score = 0
     lines = data.splitlines()
     for i in range(0, len(lines), 3):
-        a,b,d = lines[i:i+3]
-        c = ((set(a)&set(b)&set(d)))
-        assert len(c) == 1
+        a, b, c = lines[i:i+3]
+        c = set(a) & set(b) & set(d)
         c = next(iter(c))
         if c.isupper():
             p = ord(c) - ord('A') + 27
@@ -48,5 +44,5 @@ def solve2(data):
     return score
 
 print(solve2(TEST))
-print(solve2(data))
+print(solve2(INPUT))
 

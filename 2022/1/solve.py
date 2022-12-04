@@ -1,8 +1,8 @@
 import os.path
 
-INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
-with open(INPUT) as f:
-    data = f.read()
+FILE = os.path.join(os.path.dirname(__file__), 'input.txt')
+with open(FILE) as f:
+    INPUT = f.read()
 
 TEST = """1000
 2000
@@ -26,4 +26,4 @@ def solve(data):
     return calories[-1], sum(calories[-3:])
 
 print(solve(TEST))
-print(solve(data))
+print(solve(INPUT))
