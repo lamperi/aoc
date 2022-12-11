@@ -50,12 +50,13 @@ def solve(data, number_rounds, part):
         false_throw = int(lines[5].split("If false: throw to monkey ")[1])
         monkeys.append({"items": items, "op": op, "div_test": div_test, "true": true_throw, "false": false_throw})
     
-    # Part 2: Count the smallest number that divides all the dividers.
-    # It looks like all the div tests are prime numbers so let's call
-    # it "prime".
-    prime = 1
+    # Part 2: Count the smallest number that divides all the dividers,
+    # LCD.
+    # It looks like all the div tests are prime numbers so we can just 
+    # multiple all together
+    lcd = 1
     for monkey in monkeys:
-        prime *= monkey["div_test"]
+        lcd *= monkey["div_test"]
 
     inspects = collections.Counter()
     for _ in range(number_rounds):
@@ -79,8 +80,8 @@ def solve(data, number_rounds, part):
                 elif part == "part2":
                     # Part 2: Worry level doesn't decrease - but we don't have
                     # to keep track of the actual worry levels we can operate 
-                    # in (mod Prime)
-                    item = item%prime
+                    # in (mod Lcd)
+                    item = item%lcd
                 if item % monkey["div_test"] == 0:
                     monkeys[monkey["true"]]["items"].append(item)
                 else:
