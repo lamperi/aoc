@@ -31,30 +31,26 @@ TEST = """[1,1,3,1,1]
 
 def compare(one, two):
     i = 0
-
     while i < len(one) and i < len(two):
-        if isinstance(one[i], int) and isinstance(two[i], int):
-            if two[i] > one[i]:
-                return -1
-            elif two[i] < one[i]:
-                return 1
-        elif isinstance(one[i], list) and isinstance(two[i], list):
-            if (r := compare(one[i], two[i])) != 0:
-                return r
-        elif isinstance(one[i], list):
-            first = one[i]
-            second = [two[i]]
-            if (r := compare(first, second)) != 0:
-                return r
-        else:
-            first = [one[i]]
-            second = two[i]
-            if (r := compare(first, second)) != 0:
-                return r
+        match one[i], two[i]:
+            case int(a), int(b):
+                if a < b:
+                    return -1
+                elif a > b:
+                    return 1
+            case list(a), list(b):
+                if (r := compare(a, b)) != 0:
+                    return r
+            case list(a), int(b):
+                if (r := compare(a, [b])) != 0:
+                    return r
+            case int(a), list(b):
+                if (r := compare([a], b)) != 0:
+                    return r
         i += 1
-    if len(two) < len(one):
+    if len(one) > len(two):
         return 1
-    elif len(two) > len(one):
+    elif len(one) < len(two):
         return -1
     return 0
 
