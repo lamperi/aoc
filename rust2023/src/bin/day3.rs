@@ -34,44 +34,50 @@ fn find_numbers(input: &String) -> Vec<(u32, usize, usize, usize)> {
     words
 }
 
-fn part1(input: &String) -> u32 {
-    let words: Vec<(u32, usize, usize, usize)> = find_numbers(input);
-    let mut sum = 0;
-    for (val, y, x0, x1) in words {
-        let min_y = if y == 0 { y } else { y-1 };
-        'word: for y in min_y..=(y+1) {
-            let min_x = if x0 == 0 { x0 } else { x0-1 };
-            for x in min_x..=x1 {
-                if let Some(line) = input.lines().nth(y) {
-                    if let Some(char) = line.chars().nth(x) {
-                        if !char.is_digit(10) && char != '.' {
-                            sum += val;
-                            break 'word;
-                        }
+fn neighbors_symbol(input: &String, y: usize, x0: usize, x1: usize) -> bool {
+    let min_y = if y == 0 { y } else { y-1 };
+    for y in min_y..= (y+1) {
+        let min_x = if x0 == 0 { x0 } else { x0-1 };
+        for x in min_x..=x1 {
+            if let Some(line) = input.lines().nth(y) {
+                if let Some(char) = line.chars().nth(x) {
+                    if !char.is_digit(10) && char != '.' {
+                        return true
                     }
                 }
             }
         }
     }
-    sum
+    false
+}
+
+fn part1(input: &String) -> u32 {
+    let numbers: Vec<(u32, usize, usize, usize)> = find_numbers(input);
+    numbers.iter().map(|(val, y, x0, x1)| {
+        if neighbors_symbol(input, *y, *x0, *x1) { 
+            println!("{val}: y={y}, x0={x0}, x1={x1}");
+            *val
+        } else { 0 }
+    }).sum()
 }
 
 fn part2(input: &String) -> u32 {
-    let words: Vec<(u32, usize, usize, usize)> = find_numbers(input);
-    let mut sum = 0;
-    for (y, line) in input.lines().enumerate() {
-        for (x, c) in line.chars().enumerate() {
-            if c == '*' {
-                let v = words.iter().filter(|(_, y0, x0, x1)| -> bool {
-                    (*y0 as i32) - 1 <= (y as i32) && (y as i32) <= (*y0 as i32) + 1 && (*x0 as i32) - 1 <= (x as i32) && (x as i32) <= (*x1 as i32)
-                }).collect::<Vec<_>>();
-                if v.len() == 2 {
-                    sum += v.first().unwrap().0 * v.last().unwrap().0;
-                }
-            }
-        }
-    }
-    sum
+    let numbers: Vec<(u32, usize, usize, usize)> = find_numbers(input);
+    input.lines().enumerate()
+    .flat_map(|(y, line)| {
+        line.chars().enumerate()
+        .map(move |(x, c)| {
+            (y, x, c)
+        })
+    })
+    .filter(|(_, _, c)| *c == '*')
+    .map(|(y, x, _)| {
+        numbers.iter().filter(|(_, y0, x0, x1)| -> bool {
+            *y0 <= y + 1 && y <= y0 + 1 && *x0 <= x + 1 && x <= *x1
+        }).collect::<Vec<_>>()
+    })
+    .filter(|v| v.len() == 2)
+    .map(|v| v.first().unwrap().0 * v.last().unwrap().0).sum()
 }
 
 
@@ -116,5 +122,4 @@ fn test_part2() {
 .664.598.."#.to_string();
     let result = part2(&test);
     assert_eq!(result, 467835)
-
 }
