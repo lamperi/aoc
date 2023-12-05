@@ -1,10 +1,48 @@
 use std::fs;
 use std::io;
+use std::cmp::{max,min};
 
-#[derive(Debug)]
+#[derive(Copy,Clone,Debug)]
 struct Interval {
     start: u64,
     length: u64,
+}
+
+impl Interval {
+
+    fn from_start_end(start: u64, end: u64) -> Self {
+        Self{start, length: end-start}
+    }
+
+    fn end(&self) -> u64 {
+        self.start + self.length
+    }
+
+    fn intersection(&self, other: &Self) -> Option<Self> {
+        let start = max(self.start, other.start);
+        let end = min(self.end(), other.end());
+        if start < end {
+            Some(Self::from_start_end(start, end))
+        } else {
+            None
+        }
+    }
+
+    fn difference(&self, other: &Self) -> (Option<Self>, Option<Self>) {
+        let left = if self.start < other.start {
+            let end = min(self.end(), other.start);
+            Some(Self::from_start_end(self.start, end))
+        } else {
+            None
+        };
+        let right = if self.end() > other.end() {
+            let start = max(self.start, other.end());
+            Some(Self::from_start_end(start, self.end()))
+        } else {
+            None
+        };
+        (left, right)
+    }
 }
 
 struct MapInterval {
@@ -18,8 +56,8 @@ impl MapInterval {
         self.source_start + self.length
     }
 
-    fn dest_end(&self) -> u64 {
-        self.dest_start + self.length
+    fn source(&self) -> Interval {
+        Interval{start: self.source_start, length: self.length}
     }
 
     fn map(&self, value: u64) -> Option<u64> {
@@ -29,9 +67,17 @@ impl MapInterval {
             None
         }
     }
+
+    fn map_interval(&self, interval: &Interval) -> Option<Interval> {
+        if interval.start >= self.source_start && interval.end() <= self.source_end() {
+            Some(Interval{start: interval.start + self.dest_start - self.source_start, length: interval.length})
+        } else {
+            None
+        }
+    }
 }
 
-fn part1(input: &String) -> u64 {
+fn parse_input(input: &String) -> (Vec<u64>, Vec<(&str, Vec<MapInterval>)>) {
     let mut sections: std::str::Split<'_, &str> = input.split("\n\n");
     let seeds = sections.next().expect("missing seeds: section");
     let seeds = seeds
@@ -57,6 +103,11 @@ fn part1(input: &String) -> u64 {
         }).collect::<Vec<_>>();
         (map_name, map_intervals)
     }).collect::<Vec<_>>();
+    (seeds, mappings)
+}
+
+fn part1(input: &String) -> u64 {
+    let (seeds, mappings) = parse_input(input);
 
     seeds.into_iter().map(|seed| {
         mappings.iter().fold(vec![seed], |seeds, (_map_name, map_intervals)| {
@@ -71,7 +122,47 @@ fn part1(input: &String) -> u64 {
 }
 
 fn part2(input: &String) -> u64 {
-    0
+    let (seeds, mappings) = parse_input(input);
+    let seeds = seeds.chunks(2).filter_map(|slice| {
+        if let [start, length] = slice {
+            Some(Interval{start: *start, length: *length})
+        } else {
+            None
+        }
+    }).collect::<Vec<_>>();
+    seeds.into_iter().map(|seed| {
+        mappings.iter().fold(vec![seed], |seeds, (_map_name, map_intervals)| {
+            let mapped = seeds.iter().flat_map(|seed| {
+                let mut unmapped_intervals = vec![seed.clone()];
+                let mut new_intervals: Vec<Interval> = map_intervals.iter().filter_map(|map_interval: &MapInterval| -> Option<Interval> {
+                    if let Some(is) = seed.intersection(&map_interval.source()) {
+                        assert!(is.length > 0);
+                        let mapped = map_interval.map_interval(&is).expect("never None");
+                        assert!(mapped.length > 0);
+                        unmapped_intervals = unmapped_intervals.iter().flat_map(|unmapped_interval| {
+                            let mut new_unmapped_intervals = Vec::with_capacity(2);
+                            let (left_diff, right_diff) = unmapped_interval.difference(&is);
+                            if let Some(left_diff) = left_diff {
+                                assert!(left_diff.length > 0);
+                                new_unmapped_intervals.push(left_diff);
+                            }
+                            if let Some(right_diff) = right_diff {
+                                assert!(right_diff.length > 0);
+                                new_unmapped_intervals.push(right_diff);
+                            }
+                            new_unmapped_intervals
+                        }).collect::<Vec<_>>();
+                        Some(mapped)
+                    } else {
+                        None
+                    }
+                }).collect();
+                new_intervals.extend(unmapped_intervals);
+                new_intervals
+            }).collect::<Vec<_>>();
+            mapped
+        }).into_iter().map(|i| i.start).min().unwrap()
+    }).min().expect("no seeds")
 }
 
 
@@ -134,6 +225,6 @@ humidity-to-location map:
     fn test_part2() {
         let test = String::from(TEST_INPUT);
         let result = part2(&test);
-        //assert_eq!(result, 46)
+        assert_eq!(result, 46)
     }
 }
