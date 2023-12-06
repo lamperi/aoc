@@ -20,16 +20,23 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-#[test]
-fn test_part1() {
-    let test = r#""#.to_string();
-    let result = part1(&test);
-    assert_eq!(result, 0)
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-fn test_part2() {
-    let test = r#""#.to_string();
-    let result = part2(&test);
-    assert_eq!(result, 0)
+    const TEST_INPUT: &str = r#""#;
+
+    #[test]
+    fn test_part1() {
+        let test = String::from(TEST_INPUT);
+        let result = part1(&test);
+        assert_eq!(result, 35)
+    }
+
+    #[test]
+    fn test_part2() {
+        let test = String::from(TEST_INPUT);
+        let result = part2(&test);
+        assert_eq!(result, 46)
+    }
 }
