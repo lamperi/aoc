@@ -55,40 +55,40 @@ if False: # Very slow
 ### Part 2. Implemented with dynamic programming, also solves part 1. Much quicker.
 
 def solve_one_part2(springs, damaged_spring_counts):
-    # state: (index_of_springs, number_of_damaged_behind, number_of_clues_processed)
-    init_state = (0, 0, 0)
+    # state: (number_of_damaged_behind, number_of_clues_processed)
+    init_state = (0, 0)
     states = {init_state: 1}
     springs += "." # Handle end case nicely.
-    for _ in springs:
+    for c in springs:
         new_states = collections.defaultdict(int)
-        for ((index, current_damage, clues_processed), combinations) in states.items():
-            match springs[index]:
+        for ((current_damage, clues_processed), combinations) in states.items():
+            match c:
                 case '#':
                     if clues_processed < len(damaged_spring_counts) and current_damage < damaged_spring_counts[clues_processed]:
-                        new_state = (index+1, current_damage+1, clues_processed)
+                        new_state = (current_damage+1, clues_processed)
                         new_states[new_state] += combinations
                 case ".":
                     if current_damage == 0:
-                        new_state = (index+1, 0, clues_processed)
+                        new_state = (0, clues_processed)
                         new_states[new_state] += combinations
                     elif current_damage == damaged_spring_counts[clues_processed]:
-                        new_state = (index+1, 0, clues_processed+1)
+                        new_state = (0, clues_processed+1)
                         new_states[new_state] += combinations
                 case "?":
                     if clues_processed < len(damaged_spring_counts) and current_damage < damaged_spring_counts[clues_processed]:
-                        new_state = (index+1, current_damage+1, clues_processed)
+                        new_state = (current_damage+1, clues_processed)
                         new_states[new_state] += combinations
                     if current_damage == 0:
-                        new_state = (index+1, 0, clues_processed)
+                        new_state = (0, clues_processed)
                         new_states[new_state] += combinations
                     elif current_damage == damaged_spring_counts[clues_processed]:
-                        new_state = (index+1, 0, clues_processed+1)
+                        new_state = (0, clues_processed+1)
                         new_states[new_state] += combinations
                 case a:
                     assert False, f"got {a}??"
         states = new_states
     s = 0
-    for ((index, current_damage, clues_processed), combinations) in states.items():
+    for ((current_damage, clues_processed), combinations) in states.items():
         if current_damage == 0 and clues_processed == len(damaged_spring_counts):
             s += combinations
     return s
