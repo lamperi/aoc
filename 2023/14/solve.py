@@ -4,7 +4,30 @@ INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
     data = f.read()
 
-def part1(data):
+def tilt(rocks, walls, dir, limits):
+    (h, w) = limits
+
+    def sort_key(rock):
+        y, x = rock
+        return -h*y*dir[0] -w*x*dir[1]
+
+    for rock in list(sorted(rocks, key=sort_key)):
+        y, x = ok_pos = rock
+        while True:
+            yn = y + dir[0]
+            xn = x + dir[1]
+            if 0 <= yn < h and 0 <= xn < w and (yn, xn) not in walls and (yn, xn) not in rocks:
+                y, x = ok_pos = yn, xn
+            else:
+                break
+        if ok_pos != rock:
+            rocks.add(ok_pos)
+            rocks.remove(rock)
+
+def load(rocks, h):
+    return sum(h - y for y, _ in rocks)
+
+def parse(data):
     lines = data.splitlines()
     rocks = set()
     walls = set()
@@ -14,22 +37,12 @@ def part1(data):
                 rocks.add((y,x))
             elif c == "#":
                 walls.add((y,x))
-    
-    changed = True
-    while changed:
-        changed = False
-        for rock in list(sorted(rocks)):
-            y, x = rock
-            north = y-1, x
-            if y > 0 and north not in walls and north not in rocks:
-                rocks.add(north)
-                rocks.remove(rock)
-                changed = True
-    
-    s = 0
-    for y, _ in rocks:
-        s += len(lines) - y
-    return s
+    return (len(lines), len(lines[0])), rocks, frozenset(walls)
+
+def part1(data):
+    (h, w), rocks, walls = parse(data)
+    tilt(rocks, walls, (-1,  0), (h, w))
+    return load(rocks, h)
 
 test = """O....#....
 O.OO#....#
@@ -44,45 +57,20 @@ O.#..O.#.#
 print(part1(test))
 print(part1(data))
 
-def tilt(rocks, walls, dir, limits):
-    changed = True
-    while changed:
-        changed = False
-        for rock in list(sorted(rocks)):
-            y, x = rock
-            yn = y+dir[0]
-            xn = x+dir[1]
-            
-            if 0 <= yn < limits[0] and 0 <= xn < limits[1]:
-                north = yn, xn
-                if north not in walls and north not in rocks:
-                    rocks.add(north)
-                    rocks.remove(rock)
-                    changed = True
+
 
 def part2(data):
-    lines = data.splitlines()
-    rocks = set()
-    walls = set()
-    for y, line in enumerate(lines):
-        for x, c in enumerate(line):
-            if c == "O":
-                rocks.add((y,x))
-            elif c == "#":
-                walls.add((y,x))
-    
-    limits = (len(lines), len(lines[0]))
+    limits, rocks, walls = parse(data)
+    (h, w) = limits
     states = {frozenset(rocks): 0}
-    total_load = sum(limits[0] - y for y, _ in rocks)
-    loads = [total_load]
+    loads = [load(rocks, h)]
     goal = 1000000000
     for iteration in range(1, goal):
         tilt(rocks, walls, (-1,  0), limits)
         tilt(rocks, walls, ( 0, -1), limits)
         tilt(rocks, walls, ( 1,  0), limits)
         tilt(rocks, walls, ( 0,  1), limits)
-        total_load = sum(limits[0] - y for y, _ in rocks)
-        loads.append(total_load)
+        loads.append(load(rocks, h))
     
         st = frozenset(rocks)
         if st in states:
