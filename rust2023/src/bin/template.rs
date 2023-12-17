@@ -1,5 +1,5 @@
-use std::fs;
 use std::io;
+use aoc;
 
 fn part1(input: &String) -> u32 {
     0
@@ -9,9 +9,8 @@ fn part2(input: &String) -> u32 {
     0
 }
 
-
 fn main() -> io::Result<()> {
-    let input: String = fs::read_to_string("../2023/X/input.txt")?;
+    let input: String = aoc::get_input()?;
     let ans = part1(&input);
     println!("Part 1: {ans}");
 
@@ -30,13 +29,13 @@ mod tests {
     fn test_part1() {
         let test = String::from(TEST_INPUT);
         let result = part1(&test);
-        assert_eq!(result, 35)
+        assert_eq!(result, 0)
     }
 
     #[test]
     fn test_part2() {
         let test = String::from(TEST_INPUT);
         let result = part2(&test);
-        assert_eq!(result, 46)
+        assert_eq!(result, 0)
     }
 }
