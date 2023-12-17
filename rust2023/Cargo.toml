@@ -22,3 +22,32 @@ name = "day5"
 
 [[bin]]
 name = "day6"
+
+[[bin]]
+name = "day7"
+
+[[bin]]
+name = "day8"
+
+[[bin]]
+name = "day9"
+
+[[bin]]
+name = "day10"
+
+[[bin]]
+name = "day11"
+
+[[bin]]
+name = "day12"
+
+[[bin]]
+name = "day13"
+
+[[bin]]
+name = "template"
+
+[lib]
+name = "aoc"
+path = "src/aoc.rs"
+crate-type = ["lib"]
