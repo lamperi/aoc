@@ -24,25 +24,29 @@ def parse_input(data, use_color_as_instructions):
         inst.append((d, n))
     return inst
 
+def dir(d):
+    match d:
+        case 'R':
+            dx = 1
+            dy = 0
+        case 'D':
+            dx = 0
+            dy = 1
+        case 'L':
+            dx = -1
+            dy = 0
+        case 'U':
+            dx = 0
+            dy = -1
+    return dy, dx
+
 def part1(data):
     inst = parse_input(data, False)
         
     y, x = pos = (0, 0)
     walls = set([pos])
     for (d, n) in inst:
-        match d:
-            case 'R':
-                dx = 1
-                dy = 0
-            case 'D':
-                dx = 0
-                dy = 1
-            case 'L':
-                dx = -1
-                dy = 0
-            case 'U':
-                dx = 0
-                dy = -1
+        dy, dx = dir(d)
         for _ in range(n):
             y, x = pos = y + dy, x + dx
             walls.add(pos)
@@ -80,36 +84,37 @@ U 2 (#7a21e3)"""
 print(part1(test))
 print(part1(data))
 
-def part2(data):
-    inst = parse_input(data, True)
+def part2(data, use_color=True):
+    inst = parse_input(data, use_color)
 
-    y, x = pos = (0, 0)
+    y, x = pos = (100, 200)
     corners = [pos]
     for (d, n) in inst:
-        match d:
-            case 'R':
-                dx = 1
-                dy = 0
-            case 'D':
-                dx = 0
-                dy = 1
-            case 'L':
-                dx = -1
-                dy = 0
-            case 'U':
-                dx = 0
-                dy = -1
+        dy, dx = dir(d)
         y, x = pos = y + dy * n, x + dx * n
 
         corners.append(pos)
     assert corners[0] == corners[-1]
     del corners[-1]
     
-    assert False
+    # https://en.wikipedia.org/wiki/Shoelace_formula
+    area = 0
+    perimeter = 0
+    for i, c in enumerate(corners):
+        n = corners[(i+1) % len(corners)]
+        yi, xi = c
+        yn, xn = n
+        area_to_add = (yn + yi) * (xn - xi)
+        area += area_to_add
+        perimeter += abs(yn - yi) + abs(xn - xi)
+    area = abs(area)
+    return (area + perimeter)//2 + 1
 
 
 # Override test for part 2.
 # test = """ """
-
-print(part2(test))
-#print(part2(data))
+print(t1 := part2(test, False))
+assert t1 == 62
+print(t2 := part2(test))
+assert t2 == 952408144115
+print(part2(data))
