@@ -60,6 +60,12 @@ name = "day17"
 name = "day18"
 
 [[bin]]
+name = "day19"
+
+[[bin]]
+name = "day20"
+
+[[bin]]
 name = "template"
 
 [lib]
