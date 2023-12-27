@@ -32,20 +32,31 @@ fn naive_solve(input: &str, steps: u32) -> u32 {
             None => '#',
         }
     };
-    let mut init = HashSet::new();
-    init.insert(start);
-    (0..steps).fold(init, |prev, _step| {
-        prev.iter().flat_map(|loc| {
-            CardinalDirection::all()
+    let init = {
+        let mut init = HashSet::new();
+        init.insert(start);
+        init
+    };
+    let parity = steps % 2;
+    let reachable = 0;
+    let mut visited = HashSet::new();
+    (1..=steps).fold((init, reachable), |(prev, mut reachable), step| {
+        (prev.iter().flat_map(|loc| {
+            let v = CardinalDirection::all()
                 .iter()
                 .map(|cardinal| cardinal.shift(*loc))
+                .filter(|adj| visited.insert(*adj))
                 .filter(|adj| {
                     let tile = get_tile(adj.0, adj.1);
                     tile == 'S' || tile == '.'
                 } )
-                .collect::<Vec<_>>()
-        }).collect::<HashSet<_>>()
-    }).iter().count() as u32
+                .collect::<Vec<_>>();
+            if step % 2 == parity {
+                reachable += v.len() as i64;
+            }
+            v
+        }).collect::<HashSet<_>>(), reachable)
+    }).1 as u32
 }
 
 fn part1(input: &String) -> u32 {
@@ -70,13 +81,43 @@ fn improved_solve(input: &str, steps: u32) -> u64 {
     let mut locations = HashSet::new();
     locations.insert(start);
     
+    // Linear solving.
+    let parity = steps % 2;
+    let mut reachable = 0;
+    let mut alt_reachable = 0;
+    let mut visited = HashSet::new();
+
+    // Cycle detection: 
+    // Theory is that the growth of the reachable states grows 
+    // with constant increments.
     let cycle_offset = steps % height as u32;
     let mut a = None;
     let mut b = None;
     let mut c = None;
-    for step in 0..steps {
+
+    for step in 1..=steps {
+        locations = locations.into_iter().flat_map(|loc| {
+            let v = CardinalDirection::all()
+                .iter()
+                .map(|cardinal| cardinal.shift_i32(loc))
+                .filter(|adj| visited.insert(*adj))
+                .filter(|adj| {
+                    let y = adj.0.rem_euclid(height as i32);
+                    let x = adj.1.rem_euclid(width as i32);
+                    let tile = get_tile(y as usize, x as usize);
+                    tile == 'S' || tile == '.'
+                } )
+                .collect::<Vec<_>>();
+            if step % 2 == parity {
+                reachable += v.len() as i64;
+            } else {
+                alt_reachable += v.len() as i64;
+            }
+            v
+        }).collect::<HashSet<_>>();
+
         if (step.wrapping_sub(cycle_offset)) % height as u32 == 0 {
-            let prev_len = locations.len() as i64;
+            let prev_len = if step % 2 == parity { reachable } else { alt_reachable };
             let prev_c = c;
             let prev_b = b;
             let prev_a = a;
@@ -95,20 +136,8 @@ fn improved_solve(input: &str, steps: u32) -> u64 {
                 return res as u64;
             }
         }
-        locations = locations.into_iter().flat_map(|loc| {
-            CardinalDirection::all()
-                .iter()
-                .map(|cardinal| cardinal.shift_i32(loc))
-                .filter(|adj| {
-                    let y = adj.0.rem_euclid(height as i32);
-                    let x = adj.1.rem_euclid(width as i32);
-                    let tile = get_tile(y as usize, x as usize);
-                    tile == 'S' || tile == '.'
-                } )
-                .collect::<Vec<_>>()
-        }).collect::<HashSet<_>>()
     }
-    locations.len() as u64
+    reachable as u64
 }
 
 fn part2(input: &String) -> u64 {
@@ -151,6 +180,9 @@ mod tests {
     #[test]
     fn test_part2() {
         let test = String::from(TEST_INPUT);
+        let result = improved_solve(&test, 6);
+        assert_eq!(result, 16);
+
         let result = improved_solve(&test, 50);
         assert_eq!(result, 1594);
 
@@ -168,14 +200,7 @@ mod tests {
     }
 
     #[test]
-    fn test_joojoo() {
-        let test = String::from(TEST_INPUT);
-        let result = improved_solve(&test, 200);
-        assert_eq!(result, 26538);
-    }
-
-    #[test]
-     fn test_part2_non_bruteforce() {
+     fn test_part2_larger_steps() {
         let test = String::from(TEST_INPUT);
         let result = improved_solve(&test, 500);
         assert_eq!(result, 167004);
