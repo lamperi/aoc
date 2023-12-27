@@ -35,6 +35,10 @@ pub enum CardinalDirection {
 }
 
 impl CardinalDirection {
+    pub fn all() -> Vec<Self> {
+        vec![Self::North, Self::West, Self::South, Self::East]
+    }
+
     pub fn is_horizontal(&self) -> bool {
         match self {
             Self::West | Self::East => true,
@@ -67,4 +71,11 @@ impl CardinalDirection {
         let x = pos.1.wrapping_add_signed(self.dx().into());
         (y, x)
     }
+
+    pub fn shift_i32(&self, pos: (i32, i32)) -> (i32, i32) {
+        let y = pos.0.wrapping_add(self.dy().into());
+        let x = pos.1.wrapping_add(self.dx().into());
+        (y, x)
+    }
+
 }
