@@ -3,3 +3,4 @@
 # best practices is to not distribute the inputs
 input.txt
 __pycache__
+target
