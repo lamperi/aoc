@@ -15,3 +15,6 @@ name = "template"
 name = "aoc"
 path = "src/aoc.rs"
 crate-type = ["lib"]
+
+[dependencies]
+regex = "1.11.1"
