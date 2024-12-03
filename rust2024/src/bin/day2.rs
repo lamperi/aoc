@@ -37,7 +37,7 @@ fn part2(input: &String) -> usize {
         if is_safe_report(&report) {
             return true
         }
-        for index in 1..report.len() {
+        for index in 0..report.len() {
             let mut clone = report.clone();
             clone.remove(index);
             if is_safe_report(&clone) {
