@@ -19,7 +19,7 @@ fn part2(input: &String) -> u32 {
         (cmd, a, b)
     }).fold((true, 0), |(enabled, sum), parsed| {
         match parsed {
-            ("mul", Some(a), Some(b)) => (enabled, if enabled { sum + a * b } else { sum }),
+            ("mul", Some(a), Some(b)) if enabled => (enabled, sum + a * b),
             ("mul", _, _) => (enabled, sum),
             ("do", _, _) => (true, sum),
             ("don't", _, _) => (false, sum),
