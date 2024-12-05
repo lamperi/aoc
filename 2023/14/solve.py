@@ -92,3 +92,4 @@ def part2(data):
 
 print(part2(test))
 print(part2(data))
+
