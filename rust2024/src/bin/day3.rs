@@ -1,8 +1,7 @@
 use std::io;
-use aoc;
 use regex::Regex;
 
-fn part1(input: &String) -> u32 {
+fn part1(input: &str) -> u32 {
     let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
     re.captures_iter(input).map(|c| {
         let (_, [a, b]) = c.extract();
@@ -10,7 +9,7 @@ fn part1(input: &String) -> u32 {
     }).sum()
 }
 
-fn part2(input: &String) -> u32 {
+fn part2(input: &str) -> u32 {
     let re = Regex::new(r"(mul|do|don't)\((\d+)?,?(\d+)?\)").unwrap();
     re.captures_iter(input).map(|c| {
         let cmd = c.get(1).unwrap().as_str();

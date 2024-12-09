@@ -2,8 +2,8 @@ use std::io;
 use std::collections::HashMap;
 use aoc::{self, EightDirection};
 
-fn to_map(input: &String) -> HashMap<(usize, usize), char> {
-    input.split("\n")
+fn to_map(input: &str) -> HashMap<(usize, usize), char> {
+    input.split('\n')
         .enumerate()
         .flat_map(|(y, line)| {
             line.chars().enumerate()
@@ -14,7 +14,7 @@ fn to_map(input: &String) -> HashMap<(usize, usize), char> {
         .collect()
 }
 
-fn part1(input: &String) -> usize {
+fn part1(input: &str) -> usize {
     let area = to_map(input);
     area.iter()
         .filter(|(_, &c)| { c == 'X'})
@@ -35,7 +35,7 @@ fn part1(input: &String) -> usize {
         }).sum()
 }
 
-fn part2(input: &String) -> usize {
+fn part2(input: &str) -> usize {
     let area = to_map(input);
     area.iter()
         .filter(|(_, &c)| { c == 'A'})
@@ -46,10 +46,9 @@ fn part2(input: &String) -> usize {
                 .all(|dirs| {
                     let c1 = dirs[0].shift(coord);
                     let c2 = dirs[1].shift(coord);
-                    match (area.get(&c1), area.get(&c2)) {
-                        (Some('M'), Some('S')) | (Some('S'), Some('M')) => true,
-                        _ => false
-                    }
+                    matches!(
+                        (area.get(&c1), area.get(&c2)),
+                        (Some('M'), Some('S')) | (Some('S'), Some('M')))
                 })
         })
         .count()

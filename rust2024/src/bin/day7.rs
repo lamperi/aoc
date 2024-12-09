@@ -1,9 +1,8 @@
 use std::io;
-use aoc;
 
 type Num = u64;
 
-fn parse(input: &String) -> Vec<(Num, Vec<Num>)> {
+fn parse(input: &str) -> Vec<(Num, Vec<Num>)> {
     input.lines()
     .map(|line|{
         let (target, operands) = line.split_once(": ").expect("split by ': '");
@@ -15,13 +14,12 @@ fn parse(input: &String) -> Vec<(Num, Vec<Num>)> {
     .collect()
 }
 
-fn part1(input: &String) -> Num {
+fn part1(input: &str) -> Num {
     parse(input).iter()
         .filter(|(target, operands)| {
             let len = operands.len();
             let mut stack = vec![(operands[0], 1)];
-            while !stack.is_empty() {
-                let (v, index) = stack.pop().unwrap();
+            while let Some((v, index)) = stack.pop() {
                 if index == len && v == *target {
                     return true
                 }
@@ -37,7 +35,7 @@ fn part1(input: &String) -> Num {
         .sum()
 }
 
-fn part2(input: &String) -> Num {
+fn part2(input: &str) -> Num {
     parse(input).iter()
         .filter(|(target, operands)| {
             fn concat(v: Num, n: Num) -> Num {
@@ -49,8 +47,7 @@ fn part2(input: &String) -> Num {
             }
             let len = operands.len();
             let mut stack = vec![(operands[0], 1)];
-            while !stack.is_empty() {
-                let (v, index) = stack.pop().unwrap();
+            while let Some((v, index)) = stack.pop() {
                 if index == len && v == *target { 
                     return true
                 }

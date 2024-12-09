@@ -40,16 +40,10 @@ impl CardinalDirection {
     }
 
     pub fn is_horizontal(&self) -> bool {
-        match self {
-            Self::West | Self::East => true,
-            _ => false,
-        }
+        matches!(self, Self::West | Self::East)
     }
     pub fn is_vertical(&self) -> bool {
-        match self {
-            Self::North | Self::South => true,
-            _ => false,
-        }
+        matches!(self, Self::North | Self::South)
     }
     pub fn dy(&self) -> i8 {
         match self {
@@ -104,22 +98,13 @@ impl EightDirection {
     }
 
     pub fn is_horizontal(&self) -> bool {
-        match self {
-            Self::West | Self::East => true,
-            _ => false,
-        }
+        matches!(self, Self::West | Self::East)
     }
     pub fn is_vertical(&self) -> bool {
-        match self {
-            Self::North | Self::South => true,
-            _ => false,
-        }
+        matches!(self, Self::North | Self::South)
     }
     pub fn is_diagonal(&self) -> bool {
-        match self {
-            Self::NorthWest | Self::NorthEast | Self::SouthWest | Self::SouthEast => true,
-            _ => false,
-        }
+        matches!(self, Self::NorthWest | Self::NorthEast | Self::SouthWest | Self::SouthEast)
     }
     pub fn dy(&self) -> i8 {
         match self {

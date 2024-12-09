@@ -1,7 +1,6 @@
 use std::io;
-use aoc;
 
-fn parse(input: &String) -> (Vec<i32>, Vec<i32>) {
+fn parse(input: &str) -> (Vec<i32>, Vec<i32>) {
     input.lines().map(|line| {
         let mut i = line.split_ascii_whitespace();
         let left = i.next().unwrap().parse::<i32>().unwrap();
@@ -10,7 +9,7 @@ fn parse(input: &String) -> (Vec<i32>, Vec<i32>) {
     }).unzip()
 }
 
-fn part1(input: &String) -> i32 {
+fn part1(input: &str) -> i32 {
     let (mut left, mut right) = parse(input);
     left.sort();
     right.sort();
@@ -19,7 +18,7 @@ fn part1(input: &String) -> i32 {
     }).sum()
 }
 
-fn part2(input: &String) -> i32 {
+fn part2(input: &str) -> i32 {
     let (left, right) = parse(input);
     left.iter().map(|l| {
         l * right.iter().filter(|r| {*r == l}).count() as i32

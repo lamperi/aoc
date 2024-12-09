@@ -1,11 +1,10 @@
 use std::io;
-use aoc;
 
-fn part1(input: &String) -> u32 {
+fn part1(input: &str) -> u32 {
     0
 }
 
-fn part2(input: &String) -> u32 {
+fn part2(input: &str) -> u32 {
     0
 }
 

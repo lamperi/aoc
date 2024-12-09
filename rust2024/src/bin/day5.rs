@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 use std::io;
 use std::cmp::Ordering;
-use aoc;
 
-fn parse(input: &String) -> (Vec<(u32, u32)>, Vec<Vec<u32>>) {
+fn parse(input: &str) -> (Vec<(u32, u32)>, Vec<Vec<u32>>) {
     let (rules, updates) = input.split_once("\n\n").unwrap();
     let rules: Option<Vec<(u32, u32)>> = rules.lines().map(|line| {
-        line.split_once("|").and_then(|(left, right)| {
+        line.split_once('|').and_then(|(left, right)| {
             match (left.parse::<u32>().ok(), right.parse::<u32>().ok()) {
                 (Some(a), Some(b)) => Some((a,b)),
                 _ => None
@@ -15,13 +14,13 @@ fn parse(input: &String) -> (Vec<(u32, u32)>, Vec<Vec<u32>>) {
     }).collect();
     let rules = rules.expect("unable to parse rules");
     let updates: Option<Vec<Vec<u32>>> = updates.lines().map(|line| {
-        line.split(",").map(|s| s.parse::<u32>().ok()).collect()
+        line.split(',').map(|s| s.parse::<u32>().ok()).collect()
     }).collect();
     let updates = updates.expect("unable to parse updates");
     (rules, updates)
 }
 
-fn is_valid(update: &&Vec<u32>, rules: &Vec<(u32, u32)>) -> bool {
+fn is_valid(update: &&Vec<u32>, rules: &[(u32, u32)]) -> bool {
     update.iter().enumerate().all(|(index, val)| {
         rules.iter()
             .filter(|(before,_)| {
@@ -37,7 +36,7 @@ fn middle(update: &Vec<u32>) -> u32 {
     update[update.len() / 2]
 }
 
-fn sort_update(update: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Vec<u32> {
+fn sort_update(update: &[u32], rules: &[(u32, u32)]) -> Vec<u32> {
     let my_nums: HashSet<u32> = HashSet::from_iter(update.iter().copied());
     let mut total_order: HashMap<u32, HashSet<u32>> = HashMap::new();
     for (a, b) in rules.iter().copied() {
@@ -63,11 +62,11 @@ fn sort_update(update: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Vec<u32> {
         }
     }
 
-    let mut new = update.clone();
+    let mut new = update.to_vec();
     new.sort_by(|a, b| -> Ordering {
-        if total_order.get(&a).unwrap().contains(&b) {
+        if total_order.get(a).unwrap().contains(b) {
             Ordering::Less
-        } else if total_order.get(&b).unwrap().contains(&a) {
+        } else if total_order.get(b).unwrap().contains(a) {
             Ordering::Greater
         } else {
             Ordering::Equal
@@ -76,7 +75,7 @@ fn sort_update(update: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Vec<u32> {
     new
 }
 
-fn part1(input: &String) -> u32 {
+fn part1(input: &str) -> u32 {
     let (rules, updates) = parse(input);
     updates.iter()
         .filter(|v| is_valid(v, &rules))
@@ -84,7 +83,7 @@ fn part1(input: &String) -> u32 {
         .sum()
 }
 
-fn part2(input: &String) -> u32 {
+fn part2(input: &str) -> u32 {
     let (rules, updates) = parse(input);
     updates.iter()
         .filter(|v| !is_valid(v, &rules))

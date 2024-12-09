@@ -1,7 +1,6 @@
 use std::io;
-use aoc;
 
-fn parse(input: &String) -> Vec<Vec<i32>> {
+fn parse(input: &str) -> Vec<Vec<i32>> {
     input.lines()
     .map(|line| {
         line.split_ascii_whitespace()
@@ -10,31 +9,31 @@ fn parse(input: &String) -> Vec<Vec<i32>> {
     }).collect()
 }
 
-fn is_safe_increasing(report: &Vec<i32>) -> bool {
+fn is_safe_increasing(report: &[i32]) -> bool {
     report.windows(2).all(|pair| {
         let d = pair[1] - pair[0];
-        1 <= d && d <= 3
+        (1..=3).contains(&d)
     })
 } 
 
-fn is_safe_report(report: &Vec<i32>) -> bool {
+fn is_safe_report(report: &[i32]) -> bool {
     if is_safe_increasing(report) {
         true
     } else {
-        let reversed = report.iter().copied().rev().collect();
+        let reversed: Vec<i32> = report.iter().copied().rev().collect();
         is_safe_increasing(&reversed)
     } 
 }
 
-fn part1(input: &String) -> usize {
+fn part1(input: &str) -> usize {
     let reports = parse(input);
     reports.iter().filter(|&report| { is_safe_report(report) }).count()
 }
 
-fn part2(input: &String) -> usize {
+fn part2(input: &str) -> usize {
     let reports = parse(input);
     reports.iter().filter(|&report| -> bool {
-        if is_safe_report(&report) {
+        if is_safe_report(report) {
             return true
         }
         for index in 0..report.len() {
