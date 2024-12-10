@@ -1,5 +1,6 @@
 import os.path
 from collections import deque
+from dataclasses import dataclass
 
 INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
@@ -41,62 +42,46 @@ test = """2333133121414131402"""
 print(part1(test))
 print(part1(data))
 
+@dataclass
+class File:
+    file_id: int
+    start_position: int
+    size: int
+
 def part2(data):
     disk_map = []
     for _, c in enumerate(data.rstrip()):
         disk_map.append(int(c))
         
-    disk = []
-    free_space = deque()
-    for i, c in enumerate(disk_map):
+    files = []
+    free_spaces = []
+    position = 0
+    for i, size in enumerate(disk_map):
         if i % 2 == 0:
             file_id = i//2
-            disk.append((c, file_id))
+            files.append(File(file_id, position, size))
         else:
-            disk.append((c, -1))
-            free_space.append(c)
-    disk_index = len(disk) - 1
-
-    while disk_index > 0:
-        size, file_id = disk[disk_index]
-        if file_id == -1:
-            disk_index -= 1
-            continue
-        #print_disk(disk)
-        
-        begin_index = 0
-        moved = False
-        while not moved and begin_index < disk_index:
-            other_size, other_file_id = disk[begin_index]
-            if other_file_id != -1 or other_size < size:
-                begin_index += 1
-                continue
-            
-            if other_size == size:
-                disk[disk_index] = (size, other_file_id)
-                disk[begin_index] = (size, file_id)
-                moved = True
+            free_spaces.append(File(-1, position, size))
+        position += size
+    
+    first_with_capacity = 0
+    for file_to_defrag in reversed(files):
+        for idx, free_space in enumerate(free_spaces[first_with_capacity:], start=first_with_capacity):
+            if free_space.start_position > file_to_defrag.start_position:
                 break
-            elif other_size > size:
-                disk[begin_index] = (size, file_id)
-                disk[disk_index] = (size, -1)
-                disk.insert(begin_index + 1, (other_size - size, -1))
-                disk_index += 1
-                moved = True
+            if free_space.size >= file_to_defrag.size:
+                free_space.size -= file_to_defrag.size
+                file_to_defrag.start_position = free_space.start_position
+                free_space.start_position += file_to_defrag.size
+                if idx == first_with_capacity:
+                    while free_spaces[first_with_capacity].size == 0:
+                        first_with_capacity += 1
                 break
-        disk_index -= 1
 
-    idx = 0
     s = 0
-    for size, file_id in disk:
-        if file_id != -1:
-            for _ in range(size):
-                s += idx * file_id
-                idx += 1
-        else:
-            idx += size
+    for file in files:
+        s += file.size * (file.start_position + file.start_position + file.size - 1)//2 * file.file_id
     return s
-
 
 def print_disk(disk):
     s = ""
