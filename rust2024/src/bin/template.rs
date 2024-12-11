@@ -26,15 +26,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let test = String::from(TEST_INPUT);
-        let result = part1(&test);
+        let result = part1(TEST_INPUT);
         assert_eq!(result, 0)
     }
 
     #[test]
     fn test_part2() {
-        let test = String::from(TEST_INPUT);
-        let result = part2(&test);
+        let result = part2(TEST_INPUT);
         assert_eq!(result, 0)
     }
 }
