@@ -1,6 +1,5 @@
 import os.path
 from collections import Counter
-import random
 
 INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
@@ -83,7 +82,6 @@ def part2(data):
         w = 101
         h = 103
     t = 0
-    seen_states = set()
     while True:
         new_robots = []
         for r in robots:
@@ -94,22 +92,6 @@ def part2(data):
         robots = new_robots
         t += 1
 
-        """
-        state = set()
-        for r in robots:
-            x,y,_,_ = r
-            state.add((x,y))
-        state = frozenset(state)
-        if state not in seen_states:
-            seen_states.add(state)
-        else:
-            print(f"loop at {t}")
-            break
-        """
-        if t >= 10404:
-            break
-        
-        
         occupied = frozenset([(x,y) for x,y,_,_ in robots])
         visited = set()
         for start in occupied:
