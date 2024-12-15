@@ -26,7 +26,7 @@ pub fn get_input() -> io::Result<String> {
     Ok(input)
 }
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub enum CardinalDirection {
     North,
     West,
@@ -44,6 +44,14 @@ impl CardinalDirection {
     }
     pub fn is_vertical(&self) -> bool {
         matches!(self, Self::North | Self::South)
+    }
+    pub fn turn_right(&self) -> Self {
+        match self {
+            Self::North => Self::East,
+            Self::East => Self::South,
+            Self::South => Self::West,
+            Self::West => Self::North
+        }
     }
     pub fn dy(&self) -> i8 {
         match self {
@@ -71,10 +79,11 @@ impl CardinalDirection {
         let x = pos.1.wrapping_add(self.dx().into());
         (y, x)
     }
+    
 
 }
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Ord, PartialOrd)]
 pub enum EightDirection {
     North,
     NorthWest,
