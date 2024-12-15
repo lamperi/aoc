@@ -92,7 +92,7 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"""
 assert 10092 == part1(test)
 print(part1(data))
 
-def part2(data):
+def part2(data, debug=False):
     tile_map, moves = data.split("\n\n")
     
     LEFT = 0
@@ -115,10 +115,11 @@ def part2(data):
     move_to_dy = {'v': 1, '^': -1, '<': 0, '>': 0}
     move_to_dx = {'v': 0, '^': 0, '<': -1, '>': 1}
     ry,rx = start
-    for move in moves:
+    for round, move in enumerate(moves):
         if move == '\n':
             continue
-        print_warehouse(tiles, boxes, (ry,rx))
+        if debug:
+            print_warehouse(tiles, boxes, (ry,rx), round)
         dy = move_to_dy[move]
         dx = move_to_dx[move]
         next_tile = tiles.get((ry+dy, rx+dx), None)
@@ -190,7 +191,8 @@ def part2(data):
         elif next_tile is None:
             ry = ry+dy
             rx = rx+dx
-    print_warehouse(tiles, boxes, (ry,rx))
+    if debug:
+        print_warehouse(tiles, boxes, (ry,rx), len(moves))
     s = 0
     for (y,x), c in boxes.items():
         if c == LEFT:
@@ -198,8 +200,9 @@ def part2(data):
             s += y*100 + x
     return s
 
-def print_warehouse(tiles, boxes, robot):
-    return  # Remove me to debug.
+def print_warehouse(tiles, boxes, robot, round):
+    print(f"---- After {round} moves -----")
+    #return  # Remove me to debug.
     min_y = min(y for y,_ in tiles.keys())
     max_y = max(y for y,_ in tiles.keys())
     min_x = min(x for _,x in tiles.keys())
@@ -221,4 +224,4 @@ def print_warehouse(tiles, boxes, robot):
     print('\n'.join(''.join(line) for line in graphic))
 
 assert 9021 == part2(test)
-print(part2(data))
+print(part2(data, debug=True))
