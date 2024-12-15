@@ -202,7 +202,6 @@ def part2(data, debug=False):
 
 def print_warehouse(tiles, boxes, robot, round):
     print(f"---- After {round} moves -----")
-    #return  # Remove me to debug.
     min_y = min(y for y,_ in tiles.keys())
     max_y = max(y for y,_ in tiles.keys())
     min_x = min(x for _,x in tiles.keys())
@@ -224,4 +223,4 @@ def print_warehouse(tiles, boxes, robot, round):
     print('\n'.join(''.join(line) for line in graphic))
 
 assert 9021 == part2(test)
-print(part2(data, debug=True))
+print(part2(data, debug=False))
