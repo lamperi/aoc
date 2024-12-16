@@ -54,14 +54,16 @@ fn part1(input: &str) -> u32 {
         }
         for (cost, state) in edges((pos, dir), &walls) {
             let points = points + cost;
-            let entry = visited_states.entry(state);
-            if let Entry::Vacant(v) = entry {
-                v.insert(points);
-                heap.push((Reverse(points), state));
-            } else if let Entry::Occupied(mut o) = entry {
-                if points < *o.get() {
-                    o.insert(points);
-                    heap.push((Reverse(points), state));
+            match visited_states.entry(state) {
+                Entry::Vacant(v) => {
+                    v.insert(points);
+                    heap.push((Reverse(points), state));    
+                },
+                Entry::Occupied(mut o) => {
+                    if points < *o.get() {
+                        o.insert(points);
+                        heap.push((Reverse(points), state));
+                    }
                 }
             }
         }
@@ -110,15 +112,16 @@ fn part2(input: &str) -> usize {
                     best_path.insert(state, (points, prev_path));
                 }
             }
-            
-            let entry = visited_states.entry(state);
-            if let Entry::Vacant(v) = entry {
-                v.insert(points);
-                heap.push((Reverse(points), state));
-            } else if let Entry::Occupied(mut o) = entry {
-                if points < *o.get() {
-                    o.insert(points);
-                    heap.push((Reverse(points), state));
+            match visited_states.entry(state) {
+                Entry::Vacant(v) => {
+                    v.insert(points);
+                    heap.push((Reverse(points), state));    
+                },
+                Entry::Occupied(mut o) => {
+                    if points < *o.get() {
+                        o.insert(points);
+                        heap.push((Reverse(points), state));
+                    }
                 }
             }
         }
