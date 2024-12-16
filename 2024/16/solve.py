@@ -23,25 +23,18 @@ def part1(data):
     while queue:
         points, pos, dir = heapq.heappop(queue)
         
-        next_pos = pos[0] + dir[0], pos[1] + dir[1]
-        if next_pos == end:
-            return points + 1
+        if pos == end:
+            return points
         
-        if topology.get(next_pos) == ".":
-            if (next_pos, dir) not in visited_states:
-                visited_states.add((next_pos, dir))
-                heapq.heappush(queue, (points + 1, next_pos, dir))
-        
-        # (0,1) => (-1,0)
-        next_dir = dir[1] * -1, dir[0]
-        if (pos, next_dir) not in visited_states:
-            visited_states.add((pos, next_dir))
-            heapq.heappush(queue, (points + 1000, pos, next_dir))
-        # (0,1) => (1,0)
-        next_dir = dir[1], dir[0] * -1
-        if (pos, next_dir) not in visited_states:
-            visited_states.add((pos, next_dir))
-            heapq.heappush(queue, (points + 1000, pos, next_dir))
+        for (next_pos, next_dir, cost) in (
+            ((pos[0] + dir[0], pos[1] + dir[1]), dir, 1),
+            (pos, (dir[1] * -1, dir[0]), 1000),
+            (pos, (dir[1], dir[0] * -1), 1000)
+        ):
+            if topology.get(next_pos) in "ES.":
+                if (next_pos, next_dir) not in visited_states:
+                    visited_states.add((next_pos, next_dir))
+                    heapq.heappush(queue, (points + cost, next_pos, next_dir))
 
     return -1
 
@@ -78,10 +71,23 @@ test2 = """#################
 #.#.#.#########.#
 #S#.............#
 #################"""
+test3 ="""####################
+####.##########.#.##
+##..............#..#
+##.#.##.#######.####
+#..#.##.....#...#..#
+##.#.######.#.#.#.##
+##....#...........E#
+##.####.#####.###.##
+#.........#.#.#...##
+##.####.#.#.#.#.####
+#S.#################
+####################"""
 print(part1(test2))
+print(part1(test3))
 print(part1(data))
 
-def update_best_path(best_path, key, prev_key, next_points):
+def update_best_path(best_path, key, prev_key, next_points, end):
     if key in best_path:
         t = best_path[key]
         if t[0] == next_points:
@@ -111,7 +117,7 @@ def part2(data):
         points, pos, dir = heapq.heappop(queue)
         
         next_pos = pos[0] + dir[0], pos[1] + dir[1]
-        update_best_path(best_path, (next_pos, dir), (pos, dir), points + 1)
+        update_best_path(best_path, (next_pos, dir), (pos, dir), points + 1, end)
 
         if next_pos == end:
             continue
@@ -123,13 +129,13 @@ def part2(data):
         
         # (0,1) => (-1,0)
         next_dir = dir[1] * -1, dir[0]
-        update_best_path(best_path, (pos, next_dir), (pos, dir), points + 1000)
+        update_best_path(best_path, (pos, next_dir), (pos, dir), points + 1000, end)
         if (pos, next_dir) not in visited_states:
             visited_states.add((pos, next_dir))
             heapq.heappush(queue, (points + 1000, pos, next_dir))
         # (0,1) => (1,0)
         next_dir = dir[1], dir[0] * -1
-        update_best_path(best_path, (pos, next_dir), (pos, dir), points + 1000)
+        update_best_path(best_path, (pos, next_dir), (pos, dir), points + 1000, end)
         if (pos, next_dir) not in visited_states:
             visited_states.add((pos, next_dir))
             heapq.heappush(queue, (points + 1000, pos, next_dir))
