@@ -1,6 +1,7 @@
-use std::{collections::{BinaryHeap, HashMap, HashSet}, io};
+use std::{cmp::Ordering, collections::{BinaryHeap, HashMap, HashSet}, io};
 use std::cmp::Reverse;
 use aoc::CardinalDirection;
+use std::collections::hash_map::Entry;
 
 type Pos2D = (usize, usize);
 type State = (Pos2D, CardinalDirection);
@@ -25,6 +26,17 @@ fn parse(input: &str) -> (Pos2D, Pos2D, HashSet<Pos2D>) {
     walls)
 }
 
+fn edges(state: State, walls: &HashSet<Pos2D>) -> Vec<(u32, State)> {
+    let (pos, dir) = state;
+    [
+        (1, (dir.shift(pos), dir)),
+        (1000, (pos, dir.turn_left())),
+        (1000, (pos, dir.turn_right()))
+    ].into_iter()
+    .filter(|(_, (pos, _))| !walls.contains(pos))
+    .collect::<Vec<_>>()
+}
+
 fn part1(input: &str) -> u32 {
     let (start, end, walls) = parse(input);
     // Heap: contains (Reverse(points), state)
@@ -33,19 +45,24 @@ fn part1(input: &str) -> u32 {
     let mut heap = BinaryHeap::new();
     heap.push((Reverse(0), (start, CardinalDirection::East)));
     // Prune states already visited.
-    let mut visited_states = HashSet::new();
-    visited_states.insert((start, CardinalDirection::East));
+    let mut visited_states = HashMap::new();
+    visited_states.insert((start, CardinalDirection::East), 0);
     while let Some((Reverse(points), (pos, dir))) = heap.pop() {
         let next_pos = dir.shift(pos);
         if next_pos == end {
             return points + 1
         }
-        for (next_points, state) in [
-                (points+1, (next_pos, dir)),
-                (points+1000, (pos, dir.turn_left())),
-                (points+1000, (pos, dir.turn_right()))] {
-            if !walls.contains(&state.0) && visited_states.insert(state) {
-                heap.push((Reverse(next_points), state));
+        for (cost, state) in edges((pos, dir), &walls) {
+            let points = points + cost;
+            let entry = visited_states.entry(state);
+            if let Entry::Vacant(v) = entry {
+                v.insert(points);
+                heap.push((Reverse(points), state));
+            } else if let Entry::Occupied(mut o) = entry {
+                if points < *o.get() {
+                    o.insert(points);
+                    heap.push((Reverse(points), state));
+                }
             }
         }
     }
@@ -61,33 +78,48 @@ fn part2(input: &str) -> usize {
     let mut heap = BinaryHeap::new();
     heap.push((Reverse(0), (init_state)));
     // Prune states already visited. Allow to revisit a state which was previously visited with the same or higher score.
-    let mut visited_states = HashSet::new();
-    visited_states.insert(init_state);
+    let mut visited_states = HashMap::new();
+    visited_states.insert(init_state, 0);
     // Contains all cells in the best paths to a state.
-    let mut best_path: HashMap<State,(i32, HashSet<Pos2D>)> = HashMap::new();
+    let mut best_path: HashMap<State,(u32, HashSet<Pos2D>)> = HashMap::new();
     best_path.insert(init_state, (0, HashSet::from([start])));
 
     while let Some((Reverse(points), (pos, dir))) = heap.pop() {
-        let next_pos = dir.shift(pos);
-        for (points, state) in [
-                (points+1, (next_pos, dir)),
-                (points+1000, (pos, dir.turn_left())),
-                (points+1000, (pos, dir.turn_right()))] {
+        if pos == end {
+            continue
+        }
+        for (cost, state) in edges((pos, dir), &walls) {
+            let points = points + cost;
             let (_, prev_path) = &best_path[&(pos, dir)];
             let mut prev_path = prev_path.clone();
-            if let Some((exist_points, exist_path)) = best_path.get_mut(&state) {
-                if points == *exist_points {
-                    exist_path.extend(prev_path);
+            match best_path.get_mut(&state) {
+                Some((exist_points, exist_path)) => {
+                    match points.cmp(exist_points) {
+                        Ordering::Equal => {
+                            exist_path.extend(prev_path);
+                        },
+                        Ordering::Less => {
+                            prev_path.insert(state.0);
+                            best_path.insert(state, (points, prev_path));
+                        },
+                        Ordering::Greater => {}
+                    }
+                },
+                None => {
+                    prev_path.insert(state.0);
+                    best_path.insert(state, (points, prev_path));
                 }
-            } else {
-                prev_path.insert(state.0);
-                best_path.insert(state, (points, prev_path));
             }
-            if next_pos == end {
-                continue;
-            }
-            if !walls.contains(&state.0) && visited_states.insert(state) {
+            
+            let entry = visited_states.entry(state);
+            if let Entry::Vacant(v) = entry {
+                v.insert(points);
                 heap.push((Reverse(points), state));
+            } else if let Entry::Occupied(mut o) = entry {
+                if points < *o.get() {
+                    o.insert(points);
+                    heap.push((Reverse(points), state));
+                }
             }
         }
     }
@@ -135,6 +167,12 @@ mod tests {
     }
 
     #[test]
+    fn test_part1_hamatti() {
+        let result = part1(HAMATTI_TEST_INPUT);
+        assert_eq!(result, 4021)
+    }
+
+    #[test]
     fn test_part2() {
         let result = part2(TEST_INPUT);
         assert_eq!(result, 45)
@@ -144,6 +182,12 @@ mod tests {
     fn test_part2_large() {
         let result = part2(LARGE_TEST_INPUT);
         assert_eq!(result, 64)
+    }
+
+    #[test]
+    fn test_part2_hamatti() {
+        let result = part2(HAMATTI_TEST_INPUT);
+        assert_eq!(result, 22)
     }
 
     const TEST_INPUT: &str = r#"###############
@@ -179,5 +223,18 @@ const LARGE_TEST_INPUT: &str = r#"#################
 #.#.#.#########.#
 #S#.............#
 #################"#;
+
+const HAMATTI_TEST_INPUT: &str = r"####################
+####.##########.####
+##..............####
+##.#.##.#######.####
+#..#.##.....#...#..#
+##.#.######.#.#.#.##
+##....#...........E#
+##.####.#####.###.##
+#.........###.#...##
+##.####.#.###.#.####
+#S.#################
+####################";
 
 }
