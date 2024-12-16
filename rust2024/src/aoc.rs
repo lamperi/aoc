@@ -53,6 +53,14 @@ impl CardinalDirection {
             Self::West => Self::North
         }
     }
+    pub fn turn_left(&self) -> Self {
+        match self {
+            Self::North => Self::West,
+            Self::West => Self::South,
+            Self::South => Self::East,
+            Self::East => Self::North
+        }
+    }
     pub fn dy(&self) -> i8 {
         match self {
             CardinalDirection::North => -1,
