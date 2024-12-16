@@ -17,8 +17,8 @@ def part1(data):
     
     queue = []
     dir = (0, 1)
-    visited_states = set()
-    visited_states.add((start, dir))
+    visited_states = {}
+    visited_states[(start, dir)] = 0
     heapq.heappush(queue, (0, start, dir))
     while queue:
         points, pos, dir = heapq.heappop(queue)
@@ -31,10 +31,11 @@ def part1(data):
             (pos, (dir[1] * -1, dir[0]), 1000),
             (pos, (dir[1], dir[0] * -1), 1000)
         ):
+            next_points = points + cost
             if topology.get(next_pos) in "ES.":
-                if (next_pos, next_dir) not in visited_states:
-                    visited_states.add((next_pos, next_dir))
-                    heapq.heappush(queue, (points + cost, next_pos, next_dir))
+                if next_points < visited_states.get((next_pos, next_dir), next_points+1):
+                    visited_states[(next_pos, next_dir)] = next_points
+                    heapq.heappush(queue, (next_points, next_pos, next_dir))
 
     return -1
 
