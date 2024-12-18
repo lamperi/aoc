@@ -5,7 +5,7 @@ use aoc::EightDirection;
 type Pos = (usize, usize);
 
 fn parse(input: &str) -> Vec<Vec<char>> {
-    let topology: Vec<Vec<_>> = input.lines().enumerate().map(|(y,line)| {
+    let topology: Vec<Vec<_>> = input.lines().enumerate().map(|(_,line)| {
         line.chars().enumerate()
             .map(|(_, c)| c)
             .collect()
@@ -13,7 +13,7 @@ fn parse(input: &str) -> Vec<Vec<char>> {
     topology
 }
 
-fn dfs(topology: &Vec<Vec<char>>, pos: Pos, plot: char, visited_plots: &mut HashSet<Pos>) -> (u32, HashSet<(Pos, EightDirection)>) {
+fn dfs(topology: &[Vec<char>], pos: Pos, plot: char, visited_plots: &mut HashSet<Pos>) -> (u32, HashSet<(Pos, EightDirection)>) {
     visited_plots.insert(pos);
     let mut stack = vec![pos];
     let mut area = 0;
