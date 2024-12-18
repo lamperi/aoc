@@ -92,4 +92,9 @@ def part2_search(data):
                     stack.append((n+1, attempt))
     return min(all_found)
 
+print(part2_search("""Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0"""))
 print(part2_search(data))
