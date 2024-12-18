@@ -26,8 +26,8 @@ fn parse(input: &str) -> (Pos2D, Pos2D, HashSet<Pos2D>) {
     walls)
 }
 
-fn edges(state: State, walls: &HashSet<Pos2D>) -> Vec<(u32, State)> {
-    let (pos, dir) = state;
+fn edges(state: &State, walls: &HashSet<Pos2D>) -> Vec<(u32, State)> {
+    let (pos, dir) = *state;
     [
         (1, (dir.shift(pos), dir)),
         (1000, (pos, dir.turn_left())),
@@ -39,109 +39,26 @@ fn edges(state: State, walls: &HashSet<Pos2D>) -> Vec<(u32, State)> {
 
 fn part1(input: &str) -> u32 {
     let (start, end, walls) = parse(input);
-    // Heap: contains (Reverse(points), state)
-    // where state is (position, direction).
-    // Reverse is used because BinaryHeap is a max-heap.
-    let mut heap = BinaryHeap::new();
-    heap.push((Reverse(0), (start, CardinalDirection::East)));
-    // Prune states already visited.
-    let mut visited_states = HashMap::new();
-    visited_states.insert((start, CardinalDirection::East), 0);
-    while let Some((Reverse(points), (pos, dir))) = heap.pop() {
-        let next_pos = dir.shift(pos);
-        if next_pos == end {
-            return points + 1
-        }
-        for (cost, state) in edges((pos, dir), &walls) {
-            let points = points + cost;
-            match visited_states.entry(state) {
-                Entry::Vacant(v) => {
-                    v.insert(points);
-                    heap.push((Reverse(points), state));    
-                },
-                Entry::Occupied(mut o) => {
-                    if points < *o.get() {
-                        o.insert(points);
-                        heap.push((Reverse(points), state));
-                    }
-                }
-            }
-        }
-    }
-    0
+
+    aoc::dijkstra((start, CardinalDirection::East),
+    |state| state.0 == end,
+    |state| edges(state, &walls)).unwrap()
 }
 
 fn part2(input: &str) -> usize {
     let (start, end, walls) = parse(input);
-    // Heap: contains (Reverse(points), state)
-    // where state is (position, direction).
-    // Reverse is used because BinaryHeap is a max-heap.
-    let init_state = (start, CardinalDirection::East);
-    let mut heap = BinaryHeap::new();
-    heap.push((Reverse(0), (init_state)));
-    // Prune states already visited. Allow to revisit a state which was previously visited with the same or higher score.
-    let mut visited_states = HashMap::new();
-    visited_states.insert(init_state, 0);
-    // Contains all cells in the best paths to a state.
-    let mut best_path: HashMap<State,(u32, HashSet<Pos2D>)> = HashMap::new();
-    best_path.insert(init_state, (0, HashSet::from([start])));
-
-    while let Some((Reverse(points), (pos, dir))) = heap.pop() {
-        if pos == end {
-            continue
-        }
-        for (cost, state) in edges((pos, dir), &walls) {
-            let points = points + cost;
-            let (_, prev_path) = &best_path[&(pos, dir)];
-            let mut prev_path = prev_path.clone();
-            match best_path.get_mut(&state) {
-                Some((exist_points, exist_path)) => {
-                    match points.cmp(exist_points) {
-                        Ordering::Equal => {
-                            exist_path.extend(prev_path);
-                        },
-                        Ordering::Less => {
-                            prev_path.insert(state.0);
-                            best_path.insert(state, (points, prev_path));
-                        },
-                        Ordering::Greater => {}
-                    }
-                },
-                None => {
-                    prev_path.insert(state.0);
-                    best_path.insert(state, (points, prev_path));
-                }
-            }
-            match visited_states.entry(state) {
-                Entry::Vacant(v) => {
-                    v.insert(points);
-                    heap.push((Reverse(points), state));    
-                },
-                Entry::Occupied(mut o) => {
-                    if points < *o.get() {
-                        o.insert(points);
-                        heap.push((Reverse(points), state));
-                    }
-                }
-            }
-        }
-    }
-    let mut tiles_in_best_path = HashSet::new();
-    let mut best_path_len = None;
-    for ((pos, _), (points, path)) in best_path {
-        if pos != end {
-            continue
-        }
-        if best_path_len.map_or(true, |v| v > points) {
-            best_path_len = Some(points);
-            tiles_in_best_path.clear();
-            tiles_in_best_path.extend(path);
-        } else if best_path_len.unwrap() == points {
-            tiles_in_best_path.extend(path);
-        }
-    }
-    tiles_in_best_path.len()
+    aoc::dijkstra_equal_paths((start, CardinalDirection::East),
+    |state| state.0 == end,
+    |state| edges(state, &walls))
+    .map(|(_cost, nodes)| {
+        nodes.iter()
+            .map(|state| state.0)
+            .collect::<HashSet<_>>().len()
+    })
+    .unwrap()
 }
+
+
 
 fn main() -> io::Result<()> {
     let input: String = aoc::get_input()?;

@@ -18,3 +18,5 @@ crate-type = ["lib"]
 
 [dependencies]
 regex = "1.11.1"
+num = "0.4.3"
+indexmap = "2.7.0"
