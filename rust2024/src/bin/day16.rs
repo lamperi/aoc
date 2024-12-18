@@ -1,7 +1,5 @@
-use std::{cmp::Ordering, collections::{BinaryHeap, HashMap, HashSet}, io};
-use std::cmp::Reverse;
+use std::{collections::HashSet, io};
 use aoc::CardinalDirection;
-use std::collections::hash_map::Entry;
 
 type Pos2D = (usize, usize);
 type State = (Pos2D, CardinalDirection);
