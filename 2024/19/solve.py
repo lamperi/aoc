@@ -1,5 +1,6 @@
 import os.path
 from functools import cache
+from collections import defaultdict
 
 INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
@@ -49,6 +50,17 @@ def ways_to_make(design, patterns):
             ways += ways_to_make(design[len(p):], patterns)
     return ways
 
+def ways_to_make_dp(design, pattern):
+    dp = defaultdict(int)
+    dp[0] += 1
+
+    for i in range(1, len(design) + 1):
+        prefix = design[0:i]
+        for p in pattern:
+            if prefix.endswith(p):
+                dp[i] += dp[i - len(p)]
+    return dp[len(design)]
+
 def part2(data):
     patterns, designs = data.split("\n\n")
     patterns = tuple(patterns.split(", "))
@@ -57,6 +69,12 @@ def part2(data):
     s = 0
     for design in designs:
         s += ways_to_make(design, patterns)
+        
+    s2 = 0
+    for design in designs:
+        s2 += ways_to_make_dp(design, patterns)
+
+    assert s == s2
     return s
 
 # Override test for part 2.
