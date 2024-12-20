@@ -48,7 +48,15 @@ def common(data, cheat_time):
 
     # This is the base case without cheating, build all nodes that can be
     # found without cheating.
-    path, _ = bfs(start, lambda s: s == end, lambda pos: edges(pos, topology))
+    base_path, _ = bfs(start, lambda s: s == end, lambda pos: edges(pos, topology))
+    base_time = len(base_path) - 1
+
+    # Reachability - built time to reach each state from start.
+    _, parents = bfs(start, lambda s: False, lambda pos: edges(pos, topology))
+    time_from_start = {start: 0}
+    for pos in parents.keys():
+        path = make_path(parents, start, pos)
+        time_from_start[pos] = len(path) - 1
 
     # Reachability - built time to end from each state reachable from end
     _, parents = bfs(end, lambda s: False, lambda pos: edges(pos, topology))
@@ -56,6 +64,12 @@ def common(data, cheat_time):
     for pos in parents.keys():
         path = make_path(parents, end, pos)
         time_until_end[pos] = len(path) - 1
+
+    # This is an observation which makes this problem actually a bit easier.
+    # There are no states reachable from start which are not in the best path
+    # to the end, meaning there's unique path from start to end.
+    # The solution below doesn't make use of this fact, but it tries to be correct.
+    assert len(base_path) == len(time_from_start)
 
     # Need to find a save of 100 picoseconds. In tests, I'll try to find
     # a save of 50 picoseconds in part 2 and just cheats in part 1.
@@ -65,18 +79,20 @@ def common(data, cheat_time):
     # Iterate the original path, then checks all tiles reachable by cheating and
     # the time saved by reaching them.
     saves = 0
-    for pos in path:
+    for pos, time_to_reach_pos in time_from_start.items():
         for pos_diff in generate_reachable_diffs(cheat_time):
             next_pos = pos[0] + pos_diff[0], pos[1] + pos_diff[1]
-            # Cheat can't end in a wall or outside of the area.
-            if topology.get(next_pos, "#") not in "ES.":
-                continue
-            cur_time = time_until_end[pos]
-            next_time = time_until_end.get(next_pos, cur_time + 100)
+            # Total time
             cheat_len = abs(pos_diff[0]) + abs(pos_diff[1])
-            time_save = cur_time - next_time - cheat_len
-            if time_save >= require_save:
-                saves += 1
+            # Cheat can't end in a wall or outside of the area.
+            # Checking if end is reachable from cheat end pos
+            # is better.
+            time_to_reach_end = time_until_end.get(next_pos, None)
+            if time_to_reach_end is not None:
+                path_time = time_to_reach_pos + cheat_len + time_to_reach_end
+                time_save = base_time - path_time
+                if time_save >= require_save:
+                    saves += 1
     return saves
 
 def generate_reachable_diffs(cheat_time):
