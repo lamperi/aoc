@@ -1,5 +1,5 @@
 import os.path
-from collections import deque
+from collections import deque, defaultdict
 
 INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
@@ -38,11 +38,10 @@ print(part1(data))
 def part2(data):
     secret_numbers = [int(n) for n in data.splitlines()]
     
-    price_per_windows = []
+    score_across_numbers = defaultdict(int)
     for sn in secret_numbers:
         window = deque([])
-        price_per_window = {}
-        price_per_windows.append(price_per_window)
+        prices_seen = set()
         last_price = sn
         for _t in range(2000):
             sn = evolve(sn)
@@ -56,24 +55,12 @@ def part2(data):
                 window.append(change)
                 if len(window) == 4:
                     key = tuple(window)
-                    if key not in price_per_window:
-                        price_per_window[key] = price
+                    if key not in prices_seen:
+                        score_across_numbers[key] += price
+                        prices_seen.add(key)
             last_price = price
 
-    unique_windows = set()
-    for ppw in price_per_windows:
-        unique_windows.update(ppw.keys())
-
-    max_bananas = None
-    for window in unique_windows:
-        bananas = 0
-        for ppw in price_per_windows:
-            bananas += ppw.get(window, 0)
-        if max_bananas is None or bananas > max_bananas:
-            max_bananas = bananas
-            #print("max bananas with seq", max_bananas, seq)
-
-    return max_bananas
+    return max(score_across_numbers.values())
 
 # Override test for part 2.
 test = """1
