@@ -6,6 +6,21 @@ INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
     data = f.read()
 
+def run_prog(vals, operations):
+    changed = True
+    while changed:
+        changed = False
+        for res, (v1, op, v2) in operations.items():
+            #print(res, v1, v2, res in vals, v1 in vals, v2 in vals)
+            if res not in vals and v1 in vals and v2 in vals:
+                match op:
+                    case "AND": vals[res] = vals[v1] & vals[v2]
+                    case "OR": vals[res] = vals[v1] | vals[v2]
+                    case "XOR": vals[res] = vals[v1] ^ vals[v2]
+                changed = True
+                break
+    return vals
+
 def part1(data):
     values, gates = data.split("\n\n")
 
@@ -20,22 +35,10 @@ def part1(data):
         v1, op, v2, _, rs = gate.split()
         operations[rs] = (v1, op, v2)
 
-    changed = True
-    while changed:
-        changed = False
-        for res, (v1, op, v2) in operations.items():
-            #print(res, v1, v2, res in vals, v1 in vals, v2 in vals)
-            if res not in vals and v1 in vals and v2 in vals:
-                match op:
-                    case "AND": vals[res] = vals[v1] & vals[v2]
-                    case "OR": vals[res] = vals[v1] | vals[v2]
-                    case "XOR": vals[res] = vals[v1] ^ vals[v2]
-                changed = True
-                break
+    run_prog(vals, operations)
+
     z_keys = sorted([k for k in operations.keys() if k.startswith("z")])
-    bits = [vals[k] for k in z_keys]
-    bits.reverse()
-    return int("".join(str(b) for b in bits), 2)
+    return sum(vals.get(k, 0) << i for i, k in enumerate(z_keys))
 test = """x00: 1
 x01: 0
 x02: 1
@@ -85,21 +88,6 @@ tgd XOR rvg -> z12
 tnw OR pbm -> gnj"""
 print(part1(test))
 print(part1(data))
-
-def run_prog(vals, operations):
-    changed = True
-    while changed:
-        changed = False
-        for res, (v1, op, v2) in operations.items():
-            #print(res, v1, v2, res in vals, v1 in vals, v2 in vals)
-            if res not in vals and v1 in vals and v2 in vals:
-                match op:
-                    case "AND": vals[res] = vals[v1] & vals[v2]
-                    case "OR": vals[res] = vals[v1] | vals[v2]
-                    case "XOR": vals[res] = vals[v1] ^ vals[v2]
-                changed = True
-                break
-    return vals
 
 def find_broken_bit(z_keys, bit_size, operations):
     min_zeros = len(z_keys)
