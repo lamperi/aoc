@@ -69,9 +69,13 @@ fn find_largest_clique<'a>(candidates: &[&'a str], clique: &HashSet<&'a str>, g:
 
 fn part2(input: &str) -> String {
     let g = parse(input);
+    let mut visited = HashSet::new();
     g.nodes()
     .map(|node| {
-        let connections = g.connections[*node].iter().copied().collect::<Vec<_>>();
+        let connections = g.connections[*node].iter()
+            .filter(|n| !visited.contains(n))
+            .copied().collect::<Vec<_>>();
+        visited.insert(node);
         let clique = HashSet::from([*node]);
         find_largest_clique(&connections, &clique, &g)
     })

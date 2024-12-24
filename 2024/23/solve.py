@@ -77,8 +77,11 @@ def part2(data):
         connections[b].add(a)
 
     largest = set()
+    seen = set()
     for node in connections.keys():
-        x = find_largest(list(sorted(connections[node])), set([node]), connections)
+        candidates = connections[node] - seen
+        x = find_largest(sorted(candidates), set([node]), connections)
+        seen.add(node)
         if len(x) > len(largest):
             largest = x
     return ",".join(sorted(largest))
