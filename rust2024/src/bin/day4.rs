@@ -1,6 +1,6 @@
 use std::io;
 use std::collections::HashMap;
-use aoc::{self, EightDirection};
+use aoc::EightDirection;
 
 fn to_map(input: &str) -> HashMap<(usize, usize), char> {
     input.split('\n')
