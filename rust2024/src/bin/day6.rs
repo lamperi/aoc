@@ -1,5 +1,5 @@
 use std::{collections::HashSet, io};
-use aoc::CardinalDirection;
+use aoc::direction::CardinalDirection;
 
 fn parse(input: &str) -> (Vec<Vec<char>>, (usize, usize)) {
     let mut start= (0, 0);

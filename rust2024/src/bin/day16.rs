@@ -1,5 +1,5 @@
 use std::{collections::HashSet, io};
-use aoc::CardinalDirection;
+use aoc::direction::CardinalDirection;
 use aoc::graph::dijkstra;
 use aoc::graph::dijkstra_equal_paths;
 
