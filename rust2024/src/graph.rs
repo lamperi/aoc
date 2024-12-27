@@ -1,8 +1,52 @@
-use std::{cmp::{Ordering, Reverse}, collections::{BinaryHeap, HashSet}, fmt::Debug, hash::Hash};
+use std::{cmp::{Ordering, Reverse}, collections::{BinaryHeap, HashMap, HashSet, VecDeque}, fmt::Debug, hash::Hash};
+
 
 use indexmap::{map::Entry, IndexMap};
 use num::Zero;
 
+pub fn bfs<State, F1, F2, I>(init_state: State, is_end: F1, edges: F2) -> (Option<usize>, HashMap<State, State>)
+where
+    State: Hash + Copy + Eq ,
+    F1: Fn(&State) -> bool,
+    I: Iterator<Item = State>,
+    F2: Fn(&State) -> I
+{
+
+    let mut queue = VecDeque::new();
+    queue.push_back((0, init_state));
+
+    let mut parents = HashMap::new();
+    parents.insert(init_state, init_state);
+
+    while let Some((cost, state)) = queue.pop_front() {
+        if is_end(&state) {
+            return (Some(cost), parents);
+        }
+        let cost = cost + 1;
+        for next_state in edges(&state) {
+            parents.entry(next_state).or_insert_with(|| {
+                queue.push_back((cost, next_state));
+                state
+            });
+        }
+    }
+    (None, parents)
+}
+
+pub fn build_path<State>(target: State, parents: &HashMap<State, State>) -> Vec<State>
+where State: Hash + Copy + Eq + Debug {
+    let mut path = Vec::from([target]);
+    let mut next = target;
+    while let Some(&next_next) = parents.get(&next) {
+        if next_next == next {
+            break
+        }
+        path.push(next_next);
+        next = next_next;
+    }
+    path.reverse();
+    path
+}
 
 pub fn dijkstra<State, Cost, F1, F2>(init_state: State, is_end: F1, edges: F2) -> Option<Cost>
 where

@@ -8,6 +8,17 @@ pub struct Pos2D<T> {
     pub y: T,
 }
 
+impl <T> Pos2D<T> where
+T: Copy + Ord + std::ops::Add<Output = T> + std::ops::Sub<Output = T> {
+   pub fn manhattan_distance(&self, other: &Pos2D<T>) -> T {
+        let max_x = if self.x > other.x { self.x } else { other.x };
+        let min_x = if self.x < other.x { self.x } else { other.x };
+        let max_y = if self.y > other.y { self.y } else { other.y };
+        let min_y = if self.y < other.y { self.y } else { other.y };
+        (max_x - min_x) + (max_y - min_y)
+    }
+}
+
 impl <T> std::ops::Add for Pos2D<T> 
 where T: WrappingAdd {
     type Output = Self;

@@ -1,4 +1,5 @@
 use crate::pos::Pos2D;
+use crate::direction::CardinalDirection;
 
 pub struct Grid<'a> {
     pub grid: &'a [u8],
@@ -32,6 +33,20 @@ impl <'a> Grid<'a> {
 
     pub fn get_pos(&self, pos: &Pos2D<usize>) -> u8 {
         self.grid[self.pos_to_index(pos)]
+    }
+
+    pub fn neighbors(&self, pos: &Pos2D<usize>) -> Vec<Pos2D<usize>> {
+        let pos = *pos;
+        CardinalDirection::all().iter()
+            .map(|&dir| {
+                pos + dir
+            })
+            .filter(|pos| self.contains(&pos))
+            .collect()
+    }
+
+    pub fn contains(&self, pos: &Pos2D<usize>) -> bool {
+        pos.y < self.height && pos.x < self.width
     }
 
     fn pos_to_index(&self, pos: &Pos2D<usize>) -> usize {
