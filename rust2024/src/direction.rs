@@ -62,7 +62,6 @@ impl CardinalDirection {
         let x = pos.1.wrapping_add(self.dx().into());
         (y, x)
     }
-    
 
 }
 
