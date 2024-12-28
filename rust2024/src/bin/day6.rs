@@ -1,5 +1,5 @@
-use std::{collections::HashSet, io};
-use aoc::direction::CardinalDirection;
+use std::{collections::{BTreeSet, HashSet}, io};
+use aoc::{direction::CardinalDirection, grid::Grid, pos::Pos2D};
 
 fn parse(input: &str) -> (Vec<Vec<char>>, (usize, usize)) {
     let mut start= (0, 0);
@@ -32,7 +32,7 @@ fn get_path(topology: &[Vec<char>], start: (usize, usize)) -> HashSet<(usize, us
                 if *c == '#' {
                     dir = dir.turn_right();
                     next_pos = dir.shift(pos);
-                    assert!(*get_coord(topology, next_pos).unwrap() == '.')
+                    assert!(*get_coord(topology, next_pos).unwrap() == '.');
                 }
                 pos = next_pos;
             },
@@ -49,61 +49,92 @@ fn part1(input: &str) -> u32 {
     get_path(&topology, start).len() as u32
 }
 
-fn is_cycle_path(topology: &[Vec<char>], start: (usize, usize)) -> bool {
-    let mut pos = start;
-    let mut dir = CardinalDirection::North;
-    let mut visited = HashSet::new();
-    loop {
-        if !visited.insert((pos, dir)) {
-            return true
-        }
-        let mut next_pos = dir.shift(pos);
-        match get_coord(topology, next_pos) {
-            Some(c) => {
-                if *c == '#' {
-                    dir = dir.turn_right();
-                    next_pos = dir.shift(pos);
-                    match get_coord(topology, next_pos) {
-                        Some(c) => {
-                            if *c == '#' {
-                                dir = dir.turn_right();
-                                next_pos = dir.shift(pos);
-                                assert!(*get_coord(topology, next_pos).unwrap() == '.')
-                            }
-                        },
-                        None => {
-                            return false
-                        },
-                    }
+fn has_cycle(start: &Pos2D<usize>, rows: &Vec<BTreeSet<usize>>, columns: &Vec<BTreeSet<usize>>, height: usize, width: usize) -> bool {
+    let mut state = Some((*start, CardinalDirection::North));
+    let mut seen : HashSet<(Pos2D<usize>, CardinalDirection)> = HashSet::new();
+    seen.insert(state.unwrap());
+    while let Some((pos, dir)) = state {
+        match dir {
+            CardinalDirection::North => {
+                let mut rng  = columns[pos.x].range(0..pos.y);
+                if let Some(block_y) = rng.next_back() {
+                    let next_pos = Pos2D{y: block_y + 1, x: pos.x};
+                    state = Some((next_pos, dir.turn_right()));
+                } else {
+                    state = None;
+
                 }
-                pos = next_pos;
-            },
-            None => {
-                return false
+            }
+            CardinalDirection::South => {
+                let mut rng = columns[pos.x].range(pos.y+1..height);
+                if let Some(block_y) = rng.next() {
+                    let next_pos = Pos2D{y: block_y - 1, x: pos.x};
+                    state = Some((next_pos, dir.turn_right()));
+                } else {
+                    state = None;
+                }
+            }
+            CardinalDirection::West => {
+                let mut rng = rows[pos.y].range(0..pos.x);
+                if let Some(block_x) = rng.next_back() {
+                    let next_pos = Pos2D{y: pos.y, x: block_x + 1};
+                    state = Some((next_pos, dir.turn_right()));
+
+                } else {
+                    state = None;
+                }
+            }
+            CardinalDirection::East => {
+                let mut rng = rows[pos.y].range(pos.x..width);
+                if let Some(block_x) = rng.next() {
+                    let next_pos = Pos2D{y: pos.y, x: block_x - 1};
+                    state = Some((next_pos, dir.turn_right()));
+                } else {
+                    state = None;
+                }
+            }
+        }
+        if state.is_some() {
+            if !seen.insert(state.unwrap()) {
+                return true
             }
         }
     }
+    false
 }
 
+fn part2(input: &str) -> usize {
+    let grid = Grid::new(input).unwrap();
+    let start_pos = grid.find(b'^').unwrap();
 
-fn part2(input: &str) -> u32 {
-    let (mut topology, start) = parse(input);
+    let mut rows: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); grid.height];
+    let mut columns: Vec<BTreeSet<usize>> = vec![BTreeSet::new(); grid.width];
+    grid.find_all(b'#').for_each(|pos| {
+        rows[pos.y].insert(pos.x);
+        columns[pos.x].insert(pos.y);
+    });
+
+    let (topology, start) = parse(input);
     let visited = get_path(&topology, start);
     let mut loop_possibilities = 0;
     for v in visited {
         if v == start {
             continue
         }
-        topology[v.0][v.1] = '#';
+        rows[v.0].insert(v.1);
+        columns[v.1].insert(v.0);
 
-        if is_cycle_path(&topology, start) {
+        if has_cycle(&start_pos, &rows, &columns, grid.height, grid.width) {
             loop_possibilities += 1;
         }
 
-        topology[v.0][v.1] = '.';
+        rows[v.0].remove(&v.1);
+        columns[v.1].remove(&v.0);
     }
     loop_possibilities
+
 }
+
 
 fn main() -> io::Result<()> {
     let input: String = aoc::get_input()?;
