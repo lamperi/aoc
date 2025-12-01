@@ -1,6 +1,6 @@
 use std::{collections::{HashSet, VecDeque}, io};
 
-use aoc::CardinalDirection;
+use aoc::direction::CardinalDirection;
 
 type Num = i32;
 type Pos = (Num, Num);

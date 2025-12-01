@@ -1,6 +1,6 @@
 use std::io;
 use std::collections::HashMap;
-use aoc::{self, EightDirection};
+use aoc::direction::Direction;
 
 fn to_map(input: &str) -> HashMap<(usize, usize), char> {
     input.split('\n')
@@ -19,7 +19,7 @@ fn part1(input: &str) -> usize {
     area.iter()
         .filter(|(_, &c)| { c == 'X'})
         .map(|(&coord, _)| {
-            EightDirection::eight_directions().iter()
+            Direction::eight_directions().iter()
                 .filter(|dir| {
                     "MAS".chars().scan(coord, |pos, c| {
                         let next_pos = dir.shift(*pos);
@@ -40,8 +40,8 @@ fn part2(input: &str) -> usize {
     area.iter()
         .filter(|(_, &c)| { c == 'A'})
         .filter(|(&coord, _)| {
-            let a1 = [EightDirection::NorthWest, EightDirection::SouthEast];
-            let a2 = [EightDirection::NorthEast, EightDirection::SouthWest];
+            let a1 = [Direction::NorthWest, Direction::SouthEast];
+            let a2 = [Direction::NorthEast, Direction::SouthWest];
             [a1, a2].iter()
                 .all(|dirs| {
                     let c1 = dirs[0].shift(coord);

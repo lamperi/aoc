@@ -1,5 +1,7 @@
 use std::{collections::HashSet, io};
-use aoc::CardinalDirection;
+use aoc::direction::CardinalDirection;
+use aoc::graph::dijkstra;
+use aoc::graph::dijkstra_equal_paths;
 
 type Pos2D = (usize, usize);
 type State = (Pos2D, CardinalDirection);
@@ -38,14 +40,14 @@ fn edges(state: &State, walls: &HashSet<Pos2D>) -> Vec<(u32, State)> {
 fn part1(input: &str) -> u32 {
     let (start, end, walls) = parse(input);
 
-    aoc::dijkstra((start, CardinalDirection::East),
+    dijkstra((start, CardinalDirection::East),
     |state| state.0 == end,
     |state| edges(state, &walls)).unwrap()
 }
 
 fn part2(input: &str) -> usize {
     let (start, end, walls) = parse(input);
-    aoc::dijkstra_equal_paths((start, CardinalDirection::East),
+    dijkstra_equal_paths((start, CardinalDirection::East),
     |state| state.0 == end,
     |state| edges(state, &walls))
     .map(|(_cost, nodes)| {

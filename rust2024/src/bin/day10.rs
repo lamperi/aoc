@@ -1,5 +1,5 @@
 use std::{collections::{HashSet, VecDeque}, io};
-use aoc::EightDirection;
+use aoc::direction::Direction;
 
 fn parse(input: &str) -> (Vec<Vec<u8>>, Vec<(usize, usize)>) {
     let mut starts = Vec::new();
@@ -25,7 +25,7 @@ fn topology_search(input: &str) -> (usize, u32) {
             let mut paths = 0;
             let mut deq = VecDeque::from([(*start, 0)]);
             while let Some((pos, height)) = deq.pop_front() {
-                for dir in EightDirection::cardinal_directions() {
+                for dir in Direction::cardinal_directions() {
                     let new_pos = dir.shift(pos);
                     let neighbor_height = topology.get(new_pos.0).and_then(|line| line.get(new_pos.1)).copied();
                     if let Some(neighbor_height) = neighbor_height {

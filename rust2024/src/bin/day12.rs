@@ -1,6 +1,6 @@
 use std::{collections::HashSet, io};
 
-use aoc::EightDirection;
+use aoc::direction::Direction;
 
 type Pos = (usize, usize);
 
@@ -13,14 +13,14 @@ fn parse(input: &str) -> Vec<Vec<char>> {
     topology
 }
 
-fn dfs(topology: &[Vec<char>], pos: Pos, plot: char, visited_plots: &mut HashSet<Pos>) -> (u32, HashSet<(Pos, EightDirection)>) {
+fn dfs(topology: &[Vec<char>], pos: Pos, plot: char, visited_plots: &mut HashSet<Pos>) -> (u32, HashSet<(Pos, Direction)>) {
     visited_plots.insert(pos);
     let mut stack = vec![pos];
     let mut area = 0;
     let mut perimeter = HashSet::new();
     while let Some(pos) = stack.pop() {
         area += 1;
-        for dir in EightDirection::cardinal_directions() {
+        for dir in Direction::cardinal_directions() {
             let neighbor_pos = dir.shift(pos);
             if let Some(neighbor_plot) = topology.get(neighbor_pos.0).and_then(|line| line.get(neighbor_pos.1)) {
                 if *neighbor_plot == plot {
@@ -38,16 +38,16 @@ fn dfs(topology: &[Vec<char>], pos: Pos, plot: char, visited_plots: &mut HashSet
     (area, perimeter)
 }
 
-fn count_sides(perimeter: &mut HashSet<(Pos, EightDirection)>) -> u32 {
+fn count_sides(perimeter: &mut HashSet<(Pos, Direction)>) -> u32 {
     let mut sides = 0;
     while let Some(edge) = perimeter.iter().next().cloned() {
         sides += 1;
         perimeter.remove(&edge);
         let (pos, dir) = &edge;
         let dirs = if dir.is_horizontal() {
-            [EightDirection::North, EightDirection::South]
+            [Direction::North, Direction::South]
         } else {
-            [EightDirection::West, EightDirection::East]
+            [Direction::West, Direction::East]
         };
         
         for edge_dir in dirs {
