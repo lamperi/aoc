@@ -19,9 +19,8 @@ fn part1(input: &str) -> usize {
 
 fn part2(input: &str) -> i16 {
     let mut dial: i16 = 50;
-    let mut ans = 0;
     input.lines()
-    .for_each(|line| {
+    .sum(|line| {
         let direction = &line[0..1];
         let rotation = &line[1..].parse::<i16>().unwrap();
         // Treat L as R by inverting dial twice.
@@ -29,13 +28,13 @@ fn part2(input: &str) -> i16 {
             dial = (100 - dial) % 100;
         }
         dial += rotation;
-        ans += dial / 100;
+        let zero_pointed = dial / 100;
         dial %= 100;
         if direction == "L" {
             dial = (100 - dial) % 100;
         }
-    });
-    ans
+        zero_pointed
+    })
 }
 
 fn main() -> io::Result<()> {
