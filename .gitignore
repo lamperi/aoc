@@ -4,3 +4,5 @@
 input.txt
 __pycache__
 target
+aocdl*
+.vscode
