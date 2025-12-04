@@ -1,10 +1,10 @@
 use std::io;
 
-fn part1(input: &str) -> u32 {
+fn part1(input: &str) -> u64 {
     0
 }
 
-fn part2(input: &str) -> u32 {
+fn part2(input: &str) -> u64 {
     0
 }
 
@@ -22,7 +22,16 @@ fn main() -> io::Result<()> {
 mod tests {
     use super::*;
 
-    const TEST_INPUT: &str = r#""#;
+    const TEST_INPUT: &str = r#"..@@.@@@@.
+@@@.@.@.@@
+@@@@@.@.@@
+@.@@@@..@.
+@@.@@@@.@@
+.@@@@@@@.@
+.@.@.@.@@@
+@.@@@.@@@@
+.@@@@@@@@.
+@.@.@@@.@."#;
 
     #[test]
     fn test_part1() {
