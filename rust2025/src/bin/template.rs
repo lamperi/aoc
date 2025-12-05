@@ -22,16 +22,7 @@ fn main() -> io::Result<()> {
 mod tests {
     use super::*;
 
-    const TEST_INPUT: &str = r#"..@@.@@@@.
-@@@.@.@.@@
-@@@@@.@.@@
-@.@@@@..@.
-@@.@@@@.@@
-.@@@@@@@.@
-.@.@.@.@@@
-@.@@@.@@@@
-.@@@@@@@@.
-@.@.@@@.@."#;
+    const TEST_INPUT: &str = r#""#;
 
     #[test]
     fn test_part1() {
