@@ -56,7 +56,6 @@ fn part2(input: &str) -> Result<u64> {
         }
         j += 1;
     }
-    println!("{ranges:?}");
     Ok(ranges.iter().map(|r| r.end() - r.start() + 1).sum())
 }
 
