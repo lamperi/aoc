@@ -50,7 +50,8 @@ fn part2(input: &str) -> u64 {
     beams.insert(start, 1);
     let mut splits = 0;
     (0..height).for_each(|_| {
-        let vec = beams.iter().flat_map(|(beam, possibilities)|{
+        let mut new_beams = HashMap::new();
+        beams.iter().flat_map(|(beam, possibilities)|{
             let (y,x) = beam;
             let next_pos = (y+1, *x);
             if splitters.contains(&next_pos) {
@@ -61,11 +62,8 @@ fn part2(input: &str) -> u64 {
             } else {
                 vec![(next_pos, *possibilities)]
             }
-        })
-        .collect::<Vec<_>>();
-        let mut new_beams = HashMap::new();
-        vec.iter().for_each(|(pos, count)| {
-            *new_beams.entry(*pos).or_default() += count;
+        }).for_each(|(pos, count)| {
+            *new_beams.entry(pos).or_default() += count;
         });
         beams = new_beams;
     });
