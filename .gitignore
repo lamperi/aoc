@@ -2,7 +2,7 @@
 .pydevproject
 # best practices is to not distribute the inputs
 input.txt
-test_input.txt
+test_input*.txt
 __pycache__
 target
 aocdl*
