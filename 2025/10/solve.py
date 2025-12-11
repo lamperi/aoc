@@ -1,11 +1,13 @@
 import os.path
 from collections import deque
-import heapq
-import sympy
+import time
 
 INPUT = os.path.join(os.path.dirname(__file__), 'input.txt')
 with open(INPUT) as f:
     data = f.read()
+INPUT = os.path.join(os.path.dirname(__file__), 'test_input.txt')
+with open(INPUT) as f:
+    test = f.read()
 
 def part1(data):
     problems = []
@@ -48,43 +50,52 @@ def get_connected(state, schematics):
             state_mut[b] = "#" if state_mut[b] == "." else "."
         yield "".join(state_mut)
 
-test = """[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
-[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
-[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}"""
 print(part1(test))
 print(part1(data))
 
-def solve_recursively(buttons_that_increment_state, buttons, target_state):
+def solve_recursively(buttons_that_increment_state, buttons, state, target_state, pressed_buttons, presses=0):
+    if state == target_state:
+        return presses
+
     min_len = 100
     min_idx = None
-    state = [0 for _ in target_state]
-    print(buttons_that_increment_state)
+    min_buttons = None
+
     for j, inc in enumerate(buttons_that_increment_state):
-        if len(inc) < min_len:
-            min_len = len(inc)
+        valid_buttons = set(inc) - pressed_buttons
+        if len(valid_buttons) < min_len and valid_buttons:
+            min_len = len(valid_buttons)
+            min_buttons = valid_buttons
             min_idx = j
-    if min_len == 1:
-        assert False # Not implemented yet
-    elif min_len == 2:
-        a, b = buttons_that_increment_state[min_idx]
-        needed_presses = target_state[min_idx] - state[min_idx]
-        print(f"Should press buttons {a} and {b} which increments {min_idx}, total {needed_presses} times")
-        for aa in range(0, needed_presses+1):
-            bb = needed_presses - aa
-            # Press a button aa times.
-            # Press b button bb times.
-            print(f"Pressing A: {a} {aa} times")
-            for _ in range(aa):
-                for i in buttons[a]:
-                    state[i] += 1
-            print(f"Pressing B: {b} {bb} times")
-            for _ in range(bb):
-                for i in buttons[b]:
-                    state[i] += 1
-            if reachable(state, target_state):
-                print("Now, recurse. Pick next button.")
+    if min_buttons is None:
+        return None
+
+    newly_pressed_buttons = pressed_buttons | min_buttons
+    min_buttons = list(min_buttons)
+    
+    needed_presses = target_state[min_idx] - state[min_idx]
+    best_path = None
+    for comb in get_sum_combinations(min_len, needed_presses):
+        new_state = state[:]
+        for a, aa in zip(min_buttons, comb):
+            for i in buttons[a]:
+                new_state[i] += aa
+        if reachable(new_state, target_state):
+            r = solve_recursively(buttons_that_increment_state, buttons, new_state, target_state, newly_pressed_buttons, presses + needed_presses)
+            if r is not None:
+                if best_path is None:
+                    best_path = r
+                else:
+                    best_path = min(best_path, r)
+    return best_path
+
+def get_sum_combinations(component_count, total_sum):
+    if component_count > 1:
+        for n in range(0, total_sum + 1):
+            for t in get_sum_combinations(component_count - 1, total_sum - n):
+                yield (n,) + t
     else:
-        assert False # Not implemented yet.
+        yield (total_sum,)
 
 def part2(data):
     problems = []
@@ -97,72 +108,26 @@ def part2(data):
             button = tuple([int(a) for a in button.strip("()").split(",")])
             button_schematics.append(button)
         problems.append((joltages, button_schematics))
-    
     total_presses = 0
     for i, problem in enumerate(problems):
-        print(f"Solving problem {i+1}/{len(problems)}")
+        #print(f"Solving problem {i+1}/{len(problems)}")
         target_state = problem[0]
-        start_state = tuple(0 for _ in target_state)
         schematics = problem[1]
-        
-        if False:
-            button_symbols = sympy.symbols(f"a0:{len(schematics)}")
-            A = [None for _ in target_state]
-            for i, buttons in enumerate(schematics):
-                for _, butt in enumerate(buttons):
-                    if A[butt] is None:
-                        A[butt] = button_symbols[i]
-                    else:
-                        A[butt] = A[butt] + button_symbols[i]
-            for i, s in enumerate(target_state):
-                A[i] -= s
-            b = button_symbols
-            print(A, b)
-            res = sympy.solve(A, b)
-            print(res)
-            eq = 0
-            for b in button_symbols:
-                if b in res:
-                    eq += res[b]
-                else:
-                    eq += b
-            print(eq, type(eq))
-        
-        m = [[] for _ in target_state]
+
+        buttons_that_increment_state = [[] for _ in target_state]
         for i, buttons in enumerate(schematics):
             for b in buttons:
-                m[b].append(i)
-        solve_recursively(m, schematics, target_state)
-        print(m)
-        
-        if False:
-            A = np.zeros((len(target_state), len(schematics)))
-            b = np.array(target_state)
-            for i, buttons in enumerate(schematics):
-                for butt in buttons:
-                    A[butt, i] = 1
-            x = np.linalg.solve(A, b)
-            print(x)
-                
-        if False:
-            visited = set([start_state])
-            queue = [(steps_needed(start_state, target_state), start_state, 0)]
-            ok = False
-            while queue:
-                _, s, presses = heapq.heappop(queue)
-                print(s, presses)
-                if s == target_state:
-                    total_presses += presses
-                    ok = True
-                    queue.clear()
-                    break
-                for n in get_joltage_connected(s, schematics):
-                    if n not in visited:
-                        visited.add(n)
-                        if reachable(n, target_state):
-                            elem = (steps_needed(n, target_state), n, presses+1)
-                            heapq.heappush(queue, elem)
-            assert ok
+                buttons_that_increment_state[b].append(i)
+
+        start_time = time.time()
+        state = [0 for _ in target_state]
+        ret = solve_recursively(buttons_that_increment_state, schematics, state, list(target_state), set())
+        end_time = time.time()
+        taken = f'{end_time-start_time:.3f}'
+        #print(f"found by solver: {ret} in {taken} seconds")
+        assert ret is not None
+        total_presses += ret
+                    
     return total_presses
 
 def reachable(state, target_state):
@@ -171,22 +136,8 @@ def reachable(state, target_state):
             return False
     return True
 
-def steps_needed(state, target_state):
-    s = 0
-    for a, b in zip(state, target_state):
-        s += b - a
-    return s
-
-def get_joltage_connected(state, schematics):
-    for s in schematics:
-        state_mut = list(state)
-        for b in s:
-            state_mut[b] += 1
-        yield tuple(state_mut)
-
-
 # Override test for part 2.
 # test = """ """
 
 print(part2(test))
-#print(part2(data))
+print(part2(data))
